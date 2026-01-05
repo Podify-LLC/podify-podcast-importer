@@ -86,14 +86,16 @@ class RestInit {
                             'duration' => is_string($r['duration']) ? $r['duration'] : '',
                             'tags' => is_string($r['tags']) ? $r['tags'] : '',
                             'published' => is_string($r['published']) ? $r['published'] : '',
-                            'categories' => array_map(function($c){ return is_string($c['name']) ? $c['name'] : ''; }, \PodifyPodcast\Core\Database::get_episode_categories(intval($r['id']))),
+                            'categories' => array_map(function($c){ return ['id'=>intval($c['id']),'name'=>is_string($c['name'])?$c['name']:'','slug'=>is_string($c['slug'])?$c['slug']:'']; }, \PodifyPodcast\Core\Database::get_episode_categories(intval($r['id']))),
                         ];
                     }
                 }
+                $total = \PodifyPodcast\Core\Database::count_episodes($feed_id ?: null, $category_id ?: null);
                 return [
                     'ok' => true,
                     'items' => $items,
-                    'next_offset' => $offset + (is_array($rows) ? count($rows) : 0)
+                    'next_offset' => $offset + (is_array($rows) ? count($rows) : 0),
+                    'total_count' => intval($total)
                 ];
             }
         ]);

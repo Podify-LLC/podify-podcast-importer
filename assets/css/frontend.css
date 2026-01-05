@@ -56,6 +56,8 @@
 .podify-play:hover { background: #0fa764; }
 .podify-episode-audio { width: 100%; margin-top: 8px; }
 .podify-load-more-wrap .button { padding: 10px 16px; border-radius: 8px; }
+.podify-category-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.podify-category-pill { font-size: 12px; line-height: 1; color: #1b3a5a; background: #e7f1ff; border-radius: 999px; padding: 4px 8px; }
 
 /* Sticky Player */
 .podify-sticky-player {

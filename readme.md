@@ -51,3 +51,4 @@ Examples:
 
 = 1.0.0 =
 - Initial release with RSS sync, admin feed management, episodes list UI, and basic sticky player.
+

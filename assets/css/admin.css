@@ -53,6 +53,13 @@
 .podify-admin .podify-card .podify-field:last-child {
   margin-bottom: 0;
 }
+
+#podify-admin-episodes thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+}
 .podify-table-wrap {
   max-height: 520px;
   overflow: auto;
