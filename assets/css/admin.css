@@ -1,0 +1,91 @@
+/* Podify admin styles */
+.podify-admin .podify-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 28px;
+  align-items: start;
+  margin-top: 12px;
+}
+.podify-admin .podify-card {
+  background: #fff;
+  border: 1px solid #ccd0d4;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.podify-admin .podify-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.podify-admin .podify-field {
+  margin: 16px 0;
+  padding-top: 10px;
+}
+.podify-admin .podify-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.podify-admin .podify-field input[type="text"],
+.podify-admin .podify-field input[type="url"],
+.podify-admin .podify-field input[type="number"],
+.podify-admin .podify-field input[type="date"],
+.podify-admin .podify-field select,
+.podify-admin .podify-field textarea {
+  width: calc(100% - 14px) !important;
+  max-width: calc(100% - 14px) !important;
+  display: block;
+  padding: 10px 12px;
+  line-height: 1.5;
+  height: 38px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-left: 7px;
+  margin-right: 7px;
+}
+.podify-admin .podify-actions {
+  margin-top: 16px;
+}
+.podify-admin .podify-field input[type="checkbox"] {
+  margin-right: 8px;
+  transform: translateY(1px);
+}
+.podify-admin .podify-card .podify-field:last-child {
+  margin-bottom: 0;
+}
+.podify-table-wrap {
+  max-height: 520px;
+  overflow: auto;
+  border: 1px solid #ccd0d4;
+  border-radius: 4px;
+}
+.podify-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin: 10px 0 14px;
+}
+.podify-filter-bar .podify-field {
+  margin: 0;
+  padding-top: 0;
+}
+.podify-filter-bar .podify-field label {
+  margin-bottom: 4px;
+}
+.podify-filter-bar .podify-field input[type="text"],
+.podify-filter-bar .podify-field select {
+  width: auto !important;
+  max-width: none !important;
+  min-width: 160px;
+}
+.podify-filter-bar #podify-ep-search {
+  min-width: 280px;
+}
+.podify-table-wrap thead th {
+  position: sticky;
+  top: 0;
+  background: #f6f7f7;
+  z-index: 3;
+  box-shadow: 0 1px 0 #ccd0d4;
+}

@@ -1,0 +1,189 @@
+/* Podify frontend styles (scoped) */
+.podify-episodes-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+.podify-episodes-grid.podify-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.podify-episodes-grid.podify-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.podify-episodes-grid.podify-cols-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 960px) {
+  .podify-episodes-grid.podify-cols-3, .podify-episodes-grid.podify-cols-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .podify-episodes-grid { grid-template-columns: 1fr; }
+}
+.podify-episode-card { border: 1px solid #e2e4e7; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: flex; cursor: pointer; }
+.podify-episode-card.podify-row { flex-direction: row; }
+.podify-episode-media { background: transparent; width: 38%; height: auto; position: relative; overflow: hidden; }
+.podify-play-overlay {
+  position: static;
+  background: none;
+  color: #13b874;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  padding: 4px 6px;
+  line-height: 1;
+}
+.podify-play-overlay:hover { color: #0fa764; }
+@media (max-width: 640px) { .podify-episode-card.podify-row { flex-direction: column; } .podify-episode-media { width: 100%; } .podify-episode-body { width: 100%; } }
+.podify-episode-media img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+}
+.podify-episode-placeholder {
+  background: linear-gradient(135deg, #e8f0ff, #f9f9fb);
+}
+.podify-episode-body { width: 62%; padding: 18px; display: flex; flex-direction: column; }
+.podify-episode-title { font-size: 19px; line-height: 1.4; margin: 0 0 6px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-height: calc(2 * 1.4em); }
+.podify-episode-meta { color: #667085; font-size: 12px; margin-top: 6px; }
+.podify-episode-categories { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.podify-category-pill { display: inline-flex; align-items: center; padding: 4px 8px; font-size: 12px; border-radius: 999px; background: #eef6ff; color: #0f172a; border: 1px solid #dbeafe; }
+.podify-episode-desc { color: #3c3c3c; font-size: 14px; line-height: 1.5; margin: 6px 0 10px; }
+.podify-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.podify-episode-actions { margin-top: auto; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.podify-episode-duration { color: #667085; font-size: 12px; }
+.podify-episode-card.podify-playing { box-shadow: 0 4px 18px rgba(19,184,116,.35), 0 0 0 2px rgba(19,184,116,.25); border-color: rgba(19,184,116,.25); }
+.podify-play { border: none; background: #13b874; color: #fff; font-weight: 600; border-radius: 999px; padding: 8px 12px; cursor: pointer; box-shadow: 0 2px 6px rgba(19,184,116,.3); }
+.podify-play:hover { background: #0fa764; }
+.podify-episode-audio { width: 100%; margin-top: 8px; }
+.podify-load-more-wrap .button { padding: 10px 16px; border-radius: 8px; }
+
+/* Sticky Player */
+.podify-sticky-player {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 2147483647 !important;
+    background: #1a1b1e;
+    color: #fff;
+    padding: 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: block;
+    transition: transform 0.3s ease;
+    height: 96px;
+    margin: 0 !important;
+    max-width: none !important;
+}
+body.podify-player-active .podify-sticky-player {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+.podify-sticky-player.podify-pos-top { top: 0 !important; bottom: auto !important; }
+.podify-sticky-player.podify-pos-bottom { bottom: 0 !important; top: auto !important; }
+.podify-sticky-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    height: 100%;
+    padding: 8px 20px 10px;
+    position: relative;
+}
+.podify-sticky-progress-container { position: absolute; left: 0; right: 0; bottom: 8px; height: 3px; background: #2a2c31; border-radius: 0; }
+#podify-sticky-range { left: 0; right: 0; }
+.podify-sticky-player .podify-sticky-progress-container { left: 20px; right: 20px; }
+#podify-sticky-range { position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 0; opacity: 0.95; background: linear-gradient(to right, #f59e0b 0%, transparent 0%); appearance: none; cursor: pointer; z-index: 20; border: none; outline: none; }
+#podify-sticky-range::-webkit-slider-thumb { appearance: none; width: 12px; height: 12px; background: #fff; border-radius: 50%; margin-top: -5px; box-shadow: 0 0 0 2px rgba(0,0,0,0.2); }
+#podify-sticky-range::-webkit-slider-runnable-track { height: 3px; background: transparent; border: none; }
+#podify-sticky-range::-moz-range-track { height: 3px; background: transparent; border: none; }
+#podify-sticky-range::-moz-range-progress { height: 3px; background: #f59e0b; }
+#podify-sticky-range::-moz-range-thumb { width: 12px; height: 12px; background: #fff; border: none; border-radius: 50%; }
+/* Progress track background will be handled by JS gradient */
+
+.podify-sticky-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 0;
+    margin-right: 20px;
+}
+#podify-sticky-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 4px;
+    object-fit: contain;
+    background: #333;
+    display: block;
+    flex-shrink: 0;
+}
+.podify-sticky-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+#podify-sticky-title { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; margin-bottom: 2px; }
+#podify-sticky-subtitle { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#podify-sticky-rewind {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.2s, background 0.2s;
+    flex-shrink: 0;
+}
+#podify-sticky-rewind:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+}
+
+.podify-sticky-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-shrink: 0;
+}
+#podify-sticky-time {
+    font-size: 14px;
+    color: #ddd;
+}
+.podify-volume-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.2s, background 0.2s;
+}
+.podify-volume-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.podify-sticky-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.podify-play-btn-large {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+}
+.podify-play-btn-large:active {
+    transform: scale(0.95);
+}
