@@ -15,7 +15,9 @@
 }
 .podify-episode-card { border: 1px solid #e2e4e7; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.06); display: flex; cursor: pointer; }
 .podify-episode-card.podify-row { flex-direction: row; }
+.podify-episode-card.podify-modern { flex-direction: column; }
 .podify-episode-media { background: transparent; width: 38%; height: auto; position: relative; overflow: hidden; }
+.podify-episode-card.podify-modern .podify-episode-media { width: 100%; }
 .podify-play-overlay {
   position: static;
   background: none;
@@ -43,13 +45,20 @@
   background: linear-gradient(135deg, #e8f0ff, #f9f9fb);
 }
 .podify-episode-body { width: 62%; padding: 18px; display: flex; flex-direction: column; }
+.podify-episode-card.podify-modern .podify-episode-body { width: 100%; }
 .podify-episode-title { font-size: 19px; line-height: 1.4; margin: 0 0 6px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-height: calc(2 * 1.4em); }
+.podify-episode-link { text-decoration: none; color: inherit; }
+.podify-episode-link:hover { text-decoration: underline; }
 .podify-episode-meta { color: #667085; font-size: 12px; margin-top: 6px; }
 .podify-episode-categories { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 .podify-category-pill { display: inline-flex; align-items: center; padding: 4px 8px; font-size: 12px; border-radius: 999px; background: #eef6ff; color: #0f172a; border: 1px solid #dbeafe; }
 .podify-episode-desc { color: #3c3c3c; font-size: 14px; line-height: 1.5; margin: 6px 0 10px; }
 .podify-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .podify-episode-actions { margin-top: auto; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.podify-episode-card.podify-modern .podify-episode-actions { justify-content: flex-start; gap: 16px; margin-top: 12px; }
+.podify-read-more { color: #0b5bd3; text-decoration: none; font-weight: 600; font-size: 13px; }
+.podify-read-more:hover { text-decoration: underline; }
+.podify-episode-card .podify-read-more { display: inline-block; margin: 8px 0; }
 .podify-episode-duration { color: #667085; font-size: 12px; }
 .podify-episode-card.podify-playing { box-shadow: 0 4px 18px rgba(19,184,116,.35), 0 0 0 2px rgba(19,184,116,.25); border-color: rgba(19,184,116,.25); }
 .podify-play { border: none; background: #13b874; color: #fff; font-weight: 600; border-radius: 999px; padding: 8px 12px; cursor: pointer; box-shadow: 0 2px 6px rgba(19,184,116,.3); }

@@ -336,6 +336,7 @@ class AdminInit {
             echo '<div class="podify-field"><label>By Feed</label><input type="text" readonly value="[podify_podcast_list feed_id=&quot;1&quot;]" /></div>';
             echo '<div class="podify-field"><label>By Feed + Category (optional)</label><input type="text" readonly value="[podify_podcast_list feed_id=&quot;1&quot; category_id=&quot;10&quot;]" /></div>';
             echo '<div class="podify-field"><label>Custom Limit & Columns</label><input type="text" readonly value="[podify_podcast_list limit=&quot;12&quot; cols=&quot;4&quot;]" /></div>';
+            echo '<div class="podify-field"><label>Card Layout (via shortcode)</label><input type="text" readonly value="[podify_podcast_list layout=&quot;modern&quot;]" /><p class="description">Accepted values: <code>modern</code> or <code>classic</code>. Example with feed: [podify_podcast_list feed_id=&quot;1&quot; layout=&quot;modern&quot;]</p></div>';
             echo '<p style="margin-top:8px">Tip: Omit category_id to display all episodes for the chosen feed. Use the Categories tab to find the exact Category ID.</p>';
             echo '</div>';
             echo '<div class="podify-card"><h3>Sticky Player & Custom CSS</h3>';
@@ -346,7 +347,7 @@ class AdminInit {
             echo '<div class="podify-field"><label><input type="checkbox" name="sticky_player_enabled" value="1"'.($enabled?' checked':'').'> Enable sticky player</label></div>';
             echo '<div class="podify-field"><label>Position</label><select name="sticky_player_position"><option value="bottom"'.($position==='bottom'?' selected':'').'>Bottom</option><option value="top"'.($position==='top'?' selected':'').'>Top</option></select></div>';
             $custom_css = !empty($settings['custom_css']) ? $settings['custom_css'] : '';
-            echo '<div class="podify-field"><label>Custom CSS for Episode Cards</label><textarea name="custom_css" rows="8" placeholder="/* Add CSS to style the episode cards and category pills */">'.esc_textarea($custom_css).'</textarea><p class="description">Tip: Target elements like .podify-episode-card, .podify-episode-title, .podify-category-pill. Your CSS is injected sitewide with the plugin stylesheet.</p></div>';
+            echo '<div class="podify-field"><label>Custom CSS for Episode Cards</label><textarea name="custom_css" rows="12" placeholder="/* Add CSS to style the episode cards and category pills */" style="height: 125px;">'.esc_textarea($custom_css).'</textarea><p class="description">Control layout per shortcode: [podify_podcast_list layout="classic|modern"]. Target elements like .podify-episode-card, .podify-episode-title, .podify-category-pill. Your CSS is injected sitewide.</p></div>';
             echo '<div class="podify-actions"><button class="button button-primary">Save Settings</button></div></form>';
             echo '</div>';
             echo '</div>';

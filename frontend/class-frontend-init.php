@@ -20,8 +20,10 @@ class FrontendInit {
     }
     public static function enqueue_assets_global() {
         $settings = \PodifyPodcast\Core\Settings::get();
-        if (!empty($settings['sticky_player_enabled'])) {
-            self::enqueue_assets();
+        self::enqueue_assets();
+        $css = isset($settings['custom_css']) ? (string)$settings['custom_css'] : '';
+        if (trim($css) !== '') {
+            wp_add_inline_style('podify_frontend', $css);
         }
     }
     private static function format_duration($d) {
@@ -45,16 +47,36 @@ class FrontendInit {
     }
     public static function render_list($atts = []) {
         self::enqueue_assets();
-        $limit = isset($atts['limit']) ? intval($atts['limit']) : 9;
         $cols = isset($atts['cols']) ? max(1, min(4, intval($atts['cols']))) : 3;
+        $limit = isset($atts['limit']) ? intval($atts['limit']) : ($cols * 2);
         $feed_id = isset($atts['feed_id']) ? intval($atts['feed_id']) : null;
         $category_id = isset($atts['category_id']) ? intval($atts['category_id']) : null;
+        $settings = \PodifyPodcast\Core\Settings::get();
+        $layout_attr = isset($atts['layout']) ? sanitize_key($atts['layout']) : '';
+        $layout = $layout_attr ? $layout_attr : 'classic';
+        if ($layout !== 'modern') { $layout = 'classic'; }
+        $css = isset($settings['custom_css']) ? (string)$settings['custom_css'] : '';
+        if (trim($css) !== '') {
+            wp_add_inline_style('podify_frontend', $css);
+        }
+        $cat_slug = isset($atts['category']) ? sanitize_title((string)$atts['category']) : '';
+        if (!$category_id && $cat_slug && $feed_id) {
+            $cats_for_feed = \PodifyPodcast\Core\Database::get_categories(intval($feed_id));
+            if (is_array($cats_for_feed)) {
+                foreach ($cats_for_feed as $c) {
+                    if (!empty($c['slug']) && sanitize_title($c['slug']) === $cat_slug) {
+                        $category_id = intval($c['id']);
+                        break;
+                    }
+                }
+            }
+        }
         $episodes = \PodifyPodcast\Core\Database::get_episodes($feed_id ?: null, $limit, 0, $category_id ?: null);
         if (!$episodes) {
             return '<div class="podify-episodes-grid">No episodes</div>';
         }
         $container_id = 'podify-ep-'.wp_generate_uuid4();
-        $html = '<div id="'.$container_id.'" class="podify-episodes-grid podify-cols-'.$cols.'" data-limit="'.$limit.'"'.($feed_id?' data-feed="'.$feed_id.'"':'').($category_id?' data-category="'.$category_id.'"':'').' data-offset="'.count($episodes).'">';
+        $html = '<div id="'.$container_id.'" class="podify-episodes-grid podify-cols-'.$cols.'" data-limit="'.$limit.'"'.($feed_id?' data-feed="'.$feed_id.'"':'').($category_id?' data-category="'.$category_id.'"':'').' data-offset="'.count($episodes).'" data-layout="'.$layout.'">';
         foreach ($episodes as $e) {
             $title = esc_html($e['title']);
             $date = !empty($e['published']) ? esc_html( date_i18n(get_option('date_format'), strtotime($e['published'])) ) : '';
@@ -64,6 +86,7 @@ class FrontendInit {
             $tags_str = $tags ? esc_html(implode(', ', array_slice($tags, 0, 3))) : '';
             $img = !empty($e['image_url']) ? esc_url($e['image_url']) : '';
             $audio = !empty($e['audio_url']) ? esc_url($e['audio_url']) : '';
+            $pid = !empty($e['post_id']) ? intval($e['post_id']) : 0;
             if (!empty($e['post_id'])) {
                 $pid = intval($e['post_id']);
                 if ($pid > 0) {
@@ -78,6 +101,7 @@ class FrontendInit {
                     }
                 }
             }
+            $permalink = $pid > 0 ? get_permalink($pid) : home_url('/'.sanitize_title($e['title']).'/');
             $desc_raw = !empty($e['description']) ? wp_strip_all_tags($e['description']) : '';
             $desc = $desc_raw ? esc_html( wp_trim_words($desc_raw, 18) ) : '';
             $meta_parts = array_filter([$date, $tags_str], function($x){ return !empty($x); });
@@ -87,11 +111,18 @@ class FrontendInit {
             if ($img) { $data_attrs .= ' data-image="'.$img.'"'; }
             $data_attrs .= ' data-duration="'.esc_attr(self::format_duration($dur_raw)).'"';
             $data_attrs .= ' data-duration-seconds="'.esc_attr(self::duration_seconds($dur_raw)).'"';
-            $html .= '<div class="podify-episode-card podify-row"'.$data_attrs.'>';
-            $html .= '<div class="podify-episode-media">'.($img ? '<img src="'.$img.'" alt="'.$title.'" loading="lazy">' : '<div class="podify-episode-placeholder"></div>');
-            $html .= '</div>';
-            $html .= '<div class="podify-episode-body">';
-            $html .= '<div class="podify-episode-top"><h3 class="podify-episode-title">'.$title.'</h3></div>';
+            $card_class = $layout==='modern' ? 'podify-episode-card podify-modern' : 'podify-episode-card podify-row';
+            $html .= '<div class="'.$card_class.'"'.$data_attrs.'>';
+            if ($layout==='modern') {
+                $html .= '<div class="podify-episode-media">'.($img ? '<img src="'.$img.'" alt="'.$title.'" loading="lazy">' : '<div class="podify-episode-placeholder"></div>').'</div>';
+                $html .= '<div class="podify-episode-body">';
+                $html .= '<div class="podify-episode-top"><h3 class="podify-episode-title"><a href="'.esc_url($permalink).'" class="podify-episode-link">'.$title.'</a></h3></div>';
+            } else {
+                $html .= '<div class="podify-episode-media">'.($img ? '<img src="'.$img.'" alt="'.$title.'" loading="lazy">' : '<div class="podify-episode-placeholder"></div>');
+                $html .= '</div>';
+                $html .= '<div class="podify-episode-body">';
+                $html .= '<div class="podify-episode-top"><h3 class="podify-episode-title">'.$title.'</h3></div>';
+            }
             $cats = \PodifyPodcast\Core\Database::get_episode_categories(intval($e['id']));
             if (is_array($cats) && !empty($cats)) {
                 $html .= '<div class="podify-category-pills">';
@@ -100,12 +131,25 @@ class FrontendInit {
                 }
                 $html .= '</div>';
             }
-            if ($desc) $html .= '<div class="podify-episode-desc podify-clamp-2">'.$desc.'</div>';
-            if ($meta_line) $html .= '<div class="podify-episode-meta">'.$meta_line.'</div>';
-            $html .= '<div class="podify-episode-actions">';
-            if ($audio) { $html .= '<button class="podify-play-overlay" aria-label="Play">▶</button>'; }
-            if ($duration) { $html .= '<span class="podify-episode-duration">'.$duration.'</span>'; }
-            $html .= '</div>';
+            if ($layout==='modern') {
+                if ($desc) $html .= '<div class="podify-episode-desc podify-clamp-2">'.$desc.'</div>';
+                if ($meta_line) $html .= '<div class="podify-episode-meta">'.$meta_line.'</div>';
+                $html .= '<div class="podify-episode-actions">';
+                $html .= '<a class="podify-read-more" href="'.esc_url($permalink).'">Read more »</a>';
+                if ($audio) { $html .= '<button class="podify-play-overlay" aria-label="Play">▶</button>'; }
+                if ($duration) { $html .= '<span class="podify-episode-duration">'.$duration.'</span>'; }
+                $html .= '</div>';
+            } else {
+                if ($desc) $html .= '<div class="podify-episode-desc podify-clamp-2">'.$desc.'</div>';
+                $html .= '<a class="podify-read-more" href="'.esc_url($permalink).'">Read more »</a>';
+            }
+            if ($layout!=='modern') {
+                $html .= '<div class="podify-episode-actions">';
+                if ($audio) { $html .= '<button class="podify-play-overlay" aria-label="Play">▶</button>'; }
+                if ($duration) { $html .= '<span class="podify-episode-duration">'.$duration.'</span>'; }
+                $html .= '</div>';
+                if ($meta_line) $html .= '<div class="podify-episode-meta">'.$meta_line.'</div>';
+            }
             $html .= '</div>';
             $html .= '</div>';
         }
@@ -113,23 +157,26 @@ class FrontendInit {
         $episodes_url = esc_url_raw(rest_url('podify/v1/episodes'));
         $total_count = \PodifyPodcast\Core\Database::count_episodes($feed_id ?: null, $category_id ?: null);
         $remaining = max(0, intval($total_count) - count($episodes));
-        if ($remaining > 6) {
+        if ($remaining > 0) {
             $html .= '<div class="podify-load-more-wrap" style="text-align:center;margin-top:16px;"><button class="podify-load-more button" data-target="'.$container_id.'">Load more</button></div>';
         }
         $html .= '<script>(function(){';
         $html .= 'var EP_URL='.wp_json_encode($episodes_url).';';
         $html .= 'var TOTAL_COUNT='.wp_json_encode(intval($total_count)).';';
+        $html .= 'var LAYOUT='.wp_json_encode($layout).';';
+        $html .= 'var BASE_URL='.wp_json_encode( trailingslashit(home_url()) ).';';
         // Debug: Log episode data to check for missing audio
         $html .= 'console.log("Podify Debug: Loaded '.count($episodes).' episodes");';
         $html .= 'var debugEps = '.wp_json_encode(array_map(function($e){ return ['title'=>$e['title'], 'audio'=>$e['audio_url']]; }, $episodes)).';';
         $html .= 'console.log("Podify Debug: Episodes Data", debugEps);';
         $html .= 'debugEps.forEach(function(ep){ if(!ep.audio) console.warn("Podify Warning: Episode \\""+ ep.title + "\\" has no audio URL. Check Importer settings or Feed."); });';
         $html .= 'function setCardMediaAspect(root){var imgs=(root?root.querySelectorAll(".podify-episode-media img"):document.querySelectorAll(".podify-episode-media img"));imgs.forEach(function(img){function apply(){var w=img.naturalWidth||0,h=img.naturalHeight||0;if(w>0&&h>0){var p=img.parentElement;if(p){p.style.aspectRatio=w+" / "+h;img.style.width="100%";img.style.height="100%";img.style.objectFit="contain";}}}if(img.complete){apply();}else{img.addEventListener("load",apply,{once:true});}});}setCardMediaAspect();';
+        $html .= 'function ensureLayoutAndLinks(root){var grids=(root?root.querySelectorAll(".podify-episodes-grid"):document.querySelectorAll(".podify-episodes-grid"));grids.forEach(function(g){var lay=g.getAttribute("data-layout")||LAYOUT||"classic";g.querySelectorAll(".podify-episode-card").forEach(function(card){if(lay==="modern"){card.classList.add("podify-modern");}var descEl=card.querySelector(".podify-episode-desc");var metaEl=card.querySelector(".podify-episode-meta");var actions=card.querySelector(".podify-episode-actions");var existingLink=card.querySelector(".podify-read-more");var t=card.getAttribute("data-title")||"";var slug=t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");var url=BASE_URL+slug+"/";if(!existingLink){existingLink=document.createElement("a");existingLink.className="podify-read-more";existingLink.textContent="Read more »";existingLink.href=url;}else{existingLink.href=existingLink.href||url;}if(lay==="modern"){if(actions){actions.insertBefore(existingLink, actions.firstChild);}else if(metaEl){metaEl.parentElement.insertBefore(existingLink, metaEl.nextSibling);}else if(descEl){descEl.parentElement.appendChild(existingLink);} }else{if(actions && actions.contains(existingLink)){actions.removeChild(existingLink);}if(descEl){descEl.parentElement.insertBefore(existingLink, actions||metaEl||null);}else{card.appendChild(existingLink);} } });});}ensureLayoutAndLinks();';
         
         $html .= 'document.addEventListener("click",function(e){var btn=e.target.closest(".podify-play-overlay");if(!btn)return;var card=btn.closest(".podify-episode-card");if(!card)return;var src=card.getAttribute("data-audio");if(!src)return;e.preventDefault();try{var player=document.getElementById("podify-sticky-player");var stickyAudio=document.getElementById("podify-sticky-audio");var titleEl=document.getElementById("podify-sticky-title");var imgEl=document.getElementById("podify-sticky-img");var playBtn=document.getElementById("podify-sticky-play");var volBtn=document.getElementById("podify-sticky-volume");if(stickyAudio&&player){stickyAudio.src=src;stickyAudio.setAttribute("data-duration",card.getAttribute("data-duration")||"");stickyAudio.setAttribute("data-duration-seconds",card.getAttribute("data-duration-seconds")||"");document.body.classList.add("podify-player-active");player.style.setProperty("display","block","important");if(titleEl)titleEl.textContent=card.getAttribute("data-title")||titleEl.textContent;if(imgEl)imgEl.src=card.getAttribute("data-image")||imgEl.src;if(playBtn)playBtn.innerHTML=\'<svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><circle cx="12" cy="12" r="12" fill="white"/><path d="M9 8h2v8H9V8zm4 0h2v8h-2V8z" fill="black"/></svg>\';try{stickyAudio.load()}catch(_e){}document.querySelectorAll(".podify-episode-card.podify-playing").forEach(function(x){x.classList.remove("podify-playing")});card.classList.add("podify-playing");stickyAudio.play().catch(function(err){console.error("Podify: Sticky play failed from overlay click",err)})}}catch(err){console.error("Podify: Overlay click error",err)}});';
         $html .= 'function fmtDur(s){if(!s)return"";var sec=0;if(/^[0-9]+$/.test(s)){sec=parseInt(s,10)}else{var parts=s.split(":").map(function(x){return parseInt(x,10)||0});for(var i=0;i<parts.length;i++){sec=sec*60+parts[i]}}var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),se=sec%60;return h>0?(h+":"+(m<10?"0":"")+m+":"+(se<10?"0":"")+se):(m+":"+(se<10?"0":"")+se)}';
-        $html .= 'document.addEventListener("click",function(e){var btn=e.target.closest(".podify-load-more");if(!btn)return;var id=btn.getAttribute("data-target");var grid=document.getElementById(id);if(!grid)return;var limit=parseInt(grid.getAttribute("data-limit"))||9;var offset=parseInt(grid.getAttribute("data-offset"))||0;var feed=grid.getAttribute("data-feed")||"";var cat=grid.getAttribute("data-category")||"";btn.disabled=true;var url=EP_URL+"?limit="+limit+"&offset="+offset+(feed?("&feed_id="+encodeURIComponent(feed)):"")+(cat?("&category_id="+encodeURIComponent(cat)):"");fetch(url).then(function(r){return r.json()}).then(function(d){btn.disabled=false;if(!d||!d.items||!d.items.length){btn.textContent="No more";btn.disabled=true;return}var html="";d.items.forEach(function(ei){var title=ei.title||"";var date=ei.published?new Date(ei.published):null;var dateStr=date?date.toLocaleDateString():"";var duration=fmtDur(ei.duration||"");var tags=(ei.tags||"").split(",").filter(function(x){return x.trim().length});var tagsStr=tags.slice(0,3).join(", ");var img=ei.image_url||"";var audio=ei.audio_url||"";var desc=ei.description||"";if(desc.length>0){desc=desc.replace(/<[^>]+>/g,"");if(desc.length>180){desc=desc.slice(0,180)+"…"}}var metaParts=[];if(dateStr)metaParts.push(dateStr);if(tagsStr)metaParts.push(tagsStr);var metaLine=metaParts.join(" · ");html+=\'<div class="podify-episode-card podify-row">\'+\'<div class="podify-episode-media">\'+(img?\'<img src="\'+img+\'" alt="" loading="lazy">\':\'<div class="podify-episode-placeholder"></div>\')+(audio?\'<button class="podify-play-overlay" aria-label="Play">▶</button>\':\'\')+\'</div>\'+\'<div class="podify-episode-body">\'+\'<div class="podify-episode-top"><h3 class="podify-episode-title">\'+title+\'</h3></div>\'+(ei.categories&&ei.categories.length?(function(){var s=\'<div class="podify-category-pills">\';ei.categories.forEach(function(c){s+=\'<span class="podify-category-pill">\'+c.name+\'</span>\';});return s+\'</div>\';})():\'\')+(desc?\'<div class="podify-episode-desc podify-clamp-2">\'+desc+\'</div>\':\'\')+\'\'+(metaLine?\'<div class="podify-episode-meta">\'+metaLine+\'</div>\':\'\')+\'<div class="podify-episode-actions">\'+(audio?\'<audio class="podify-episode-audio" controls preload="none" src="\'+audio+\'"></audio>\':\'\')+\'</div>\'+\'</div>\'+\'</div>\';});grid.insertAdjacentHTML("beforeend",html);var newOffset=offset + d.items.length;grid.setAttribute("data-offset",newOffset);var tot=d.total_count||TOTAL_COUNT||0;var remain=tot-newOffset;if(remain<=6){var wrap=btn.closest(".podify-load-more-wrap");if(wrap){wrap.parentNode.removeChild(wrap);}}}).catch(function(){btn.disabled=false;});});';
-        $html .= 'document.addEventListener("click",function(e){var btn=e.target.closest(".podify-load-more");if(!btn)return;e.preventDefault();e.stopImmediatePropagation();var id=btn.getAttribute("data-target");var grid=document.getElementById(id);if(!grid)return;var limit=parseInt(grid.getAttribute("data-limit"))||9;var offset=parseInt(grid.getAttribute("data-offset"))||0;var feed=grid.getAttribute("data-feed")||"";var cat=grid.getAttribute("data-category")||"";btn.disabled=true;var url=EP_URL+"?limit="+limit+"&offset="+offset+(feed?("&feed_id="+encodeURIComponent(feed)):"")+(cat?("&category_id="+encodeURIComponent(cat)):"");fetch(url).then(function(r){return r.json()}).then(function(d){btn.disabled=false;if(!d||!d.items||!d.items.length){btn.textContent="No more";btn.disabled=true;return}var html="";d.items.forEach(function(ei){var title=ei.title||"";var date=ei.published?new Date(ei.published):null;var dateStr=date?date.toLocaleDateString():"";var duration=fmtDur(ei.duration||"");var tags=(ei.tags||"").split(",").filter(function(x){return x.trim().length});var tagsStr=tags.slice(0,3).join(", ");var img=ei.image_url||"";var audio=ei.audio_url||"";var desc=ei.description||"";if(desc.length>0){desc=desc.replace(/<[^>]+>/g,"");if(desc.length>180){desc=desc.slice(0,180)+"…"}}var metaParts=[];if(dateStr)metaParts.push(dateStr);if(tagsStr)metaParts.push(tagsStr);var metaLine=metaParts.join(" · ");var dsCalc=(function(){var s=ei.duration||"";var sec=0;if(/^[0-9]+$/.test(s)){sec=parseInt(s,10)}else{var parts=s.split(":").map(function(x){return parseInt(x,10)||0});for(var i=0;i<parts.length;i++){sec=sec*60+parts[i]}}return sec;})();html+=\'<div class="podify-episode-card podify-row\'+(audio?\'" data-audio="\'+audio+\'"\':\'"\')+\' data-title="\'+title.replace(/"/g,\'&quot;\')+\'"\'+(img?\' data-image="\'+img+\'"\':\'\')+\' data-duration="\'+duration+\'" data-duration-seconds="\'+dsCalc+\'">\'+\'<div class="podify-episode-media">\'+(img?\'<img src="\'+img+\'" alt="" loading="lazy">\':\'<div class="podify-episode-placeholder"></div>\')+\'</div>\'+\'<div class="podify-episode-body">\'+\'<div class="podify-episode-top"><h3 class="podify-episode-title">\'+title+\'</h3></div>\'+(ei.categories&&ei.categories.length?(function(){var s=\'<div class="podify-category-pills">\';ei.categories.forEach(function(c){s+=\'<span class="podify-category-pill">\'+c.name+\'</span>\';});return s+\'</div>\';})():\'\')+(desc?\'<div class="podify-episode-desc podify-clamp-2">\'+desc+\'</div>\':\'\')+\'\'+(metaLine?\'<div class="podify-episode-meta">\'+metaLine+\'</div>\':\'\')+\'<div class="podify-episode-actions">\'+(audio?\'<button class="podify-play-overlay" aria-label="Play">▶</button>\':\'\')+(duration?\'<span class="podify-episode-duration">\'+duration+\'</span>\':\'\')+\'</div>\'+\'</div>\'+\'</div>\';});grid.insertAdjacentHTML("beforeend",html);setCardMediaAspect(grid);var newOffset=parseInt(offset)+d.items.length;grid.setAttribute("data-offset",String(newOffset));var tot=d.total_count||TOTAL_COUNT||0;var remain=tot-newOffset;if(remain<=6){var wrap=btn.closest(".podify-load-more-wrap");if(wrap){wrap.parentNode.removeChild(wrap);}}}).catch(function(err){btn.disabled=false;console.error("Podify: Load more (override) failed",err)});},true);})();</script>';
+        $html .= 'document.addEventListener("click",function(e){var btn=e.target.closest(".podify-load-more");if(!btn)return;var id=btn.getAttribute("data-target");var grid=document.getElementById(id);if(!grid)return;var limit=parseInt(grid.getAttribute("data-limit"))||9;var offset=parseInt(grid.getAttribute("data-offset"))||0;var feed=grid.getAttribute("data-feed")||"";var cat=grid.getAttribute("data-category")||"";btn.disabled=true;var url=EP_URL+"?limit="+limit+"&offset="+offset+(feed?("&feed_id="+encodeURIComponent(feed)):"")+(cat?("&category_id="+encodeURIComponent(cat)):"");fetch(url).then(function(r){return r.json()}).then(function(d){btn.disabled=false;if(!d||!d.items||!d.items.length){btn.textContent="No more";btn.disabled=true;return}var html="";d.items.forEach(function(ei){var title=ei.title||"";var date=ei.published?new Date(ei.published):null;var dateStr=date?date.toLocaleDateString():"";var duration=fmtDur(ei.duration||"");var tags=(ei.tags||"").split(",").filter(function(x){return x.trim().length});var tagsStr=tags.slice(0,3).join(", ");var img=ei.image_url||"";var audio=ei.audio_url||"";var desc=ei.description||"";if(desc.length>0){desc=desc.replace(/<[^>]+>/g,"");if(desc.length>180){desc=desc.slice(0,180)+"…"}}var metaParts=[];if(dateStr)metaParts.push(dateStr);if(tagsStr)metaParts.push(tagsStr);var metaLine=metaParts.join(" · ");html+=\'<div class="podify-episode-card podify-row">\'+\'<div class="podify-episode-media">\'+(img?\'<img src="\'+img+\'" alt="" loading="lazy">\':\'<div class="podify-episode-placeholder"></div>\')+(audio?\'<button class="podify-play-overlay" aria-label="Play">▶</button>\':\'\')+\'</div>\'+\'<div class="podify-episode-body">\'+\'<div class="podify-episode-top"><h3 class="podify-episode-title">\'+title+\'</h3></div>\'+(ei.categories&&ei.categories.length?(function(){var s=\'<div class="podify-category-pills">\';ei.categories.forEach(function(c){s+=\'<span class="podify-category-pill">\'+c.name+\'</span>\';});return s+\'</div>\';})():\'\')+(desc?\'<div class="podify-episode-desc podify-clamp-2">\'+desc+\'</div>\':\'\')+\'\'+(metaLine?\'<div class="podify-episode-meta">\'+metaLine+\'</div>\':\'\')+\'<div class="podify-episode-actions">\'+(audio?\'<audio class="podify-episode-audio" controls preload="none" src="\'+audio+\'"></audio>\':\'\')+\'</div>\'+\'</div>\'+\'</div>\';});grid.insertAdjacentHTML("beforeend",html);var newOffset=offset + d.items.length;grid.setAttribute("data-offset",newOffset);var tot=d.total_count||TOTAL_COUNT||0;var remain=tot-newOffset;if(remain<=0){var wrap=btn.closest(".podify-load-more-wrap");if(wrap){wrap.parentNode.removeChild(wrap);}}}).catch(function(){btn.disabled=false;});});';
+        $html .= 'document.addEventListener("click",function(e){var btn=e.target.closest(".podify-load-more");if(!btn)return;e.preventDefault();e.stopImmediatePropagation();var id=btn.getAttribute("data-target");var grid=document.getElementById(id);if(!grid)return;var limit=parseInt(grid.getAttribute("data-limit"))||9;var offset=parseInt(grid.getAttribute("data-offset"))||0;var feed=grid.getAttribute("data-feed")||"";var cat=grid.getAttribute("data-category")||"";btn.disabled=true;var url=EP_URL+"?limit="+limit+"&offset="+offset+(feed?("&feed_id="+encodeURIComponent(feed)):"")+(cat?("&category_id="+encodeURIComponent(cat)):"");fetch(url).then(function(r){return r.json()}).then(function(d){btn.disabled=false;if(!d||!d.items||!d.items.length){btn.textContent="No more";btn.disabled=true;return}var html="";d.items.forEach(function(ei){var title=ei.title||"";var date=ei.published?new Date(ei.published):null;var dateStr=date?date.toLocaleDateString():"";var duration=fmtDur(ei.duration||"");var tags=(ei.tags||"").split(",").filter(function(x){return x.trim().length});var tagsStr=tags.slice(0,3).join(", ");var img=ei.image_url||"";var audio=ei.audio_url||"";var desc=ei.description||"";if(desc.length>0){desc=desc.replace(/<[^>]+>/g,"");if(desc.length>180){desc=desc.slice(0,180)+"…"}}var metaParts=[];if(dateStr)metaParts.push(dateStr);if(tagsStr)metaParts.push(tagsStr);var metaLine=metaParts.join(" · ");var dsCalc=(function(){var s=ei.duration||"";var sec=0;if(/^[0-9]+$/.test(s)){sec=parseInt(s,10)}else{var parts=s.split(":").map(function(x){return parseInt(x,10)||0});for(var i=0;i<parts.length;i++){sec=sec*60+parts[i]}}return sec;})();html+=\'<div class="podify-episode-card podify-row\'+(audio?\'" data-audio="\'+audio+\'"\':\'"\')+\' data-title="\'+title.replace(/"/g,\'&quot;\')+\'"\'+(img?\' data-image="\'+img+\'"\':\'\')+\' data-duration="\'+duration+\'" data-duration-seconds="\'+dsCalc+\'">\'+\'<div class="podify-episode-media">\'+(img?\'<img src="\'+img+\'" alt="" loading="lazy">\':\'<div class="podify-episode-placeholder"></div>\')+\'</div>\'+\'<div class="podify-episode-body">\'+\'<div class="podify-episode-top"><h3 class="podify-episode-title">\'+title+\'</h3></div>\'+(ei.categories&&ei.categories.length?(function(){var s=\'<div class="podify-category-pills">\';ei.categories.forEach(function(c){s+=\'<span class="podify-category-pill">\'+c.name+\'</span>\';});return s+\'</div>\';})():\'\')+(desc?\'<div class="podify-episode-desc podify-clamp-2">\'+desc+\'</div>\':\'\')+\'\'+(metaLine?\'<div class="podify-episode-meta">\'+metaLine+\'</div>\':\'\')+\'<div class="podify-episode-actions">\'+(audio?\'<button class="podify-play-overlay" aria-label="Play">▶</button>\':\'\')+(duration?\'<span class="podify-episode-duration">\'+duration+\'</span>\':\'\')+\'</div>\'+\'</div>\'+\'</div>\';});grid.insertAdjacentHTML("beforeend",html);setCardMediaAspect(grid);var newOffset=parseInt(offset)+d.items.length;grid.setAttribute("data-offset",String(newOffset));var tot=d.total_count||TOTAL_COUNT||0;var remain=tot-newOffset;if(remain<=0){var wrap=btn.closest(".podify-load-more-wrap");if(wrap){wrap.parentNode.removeChild(wrap);}}}).catch(function(err){btn.disabled=false;console.error("Podify: Load more (override) failed",err)});},true);})();</script>';
         return $html;
     }
     public static function inject_sticky_player() {

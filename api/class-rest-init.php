@@ -86,6 +86,7 @@ class RestInit {
                             'duration' => is_string($r['duration']) ? $r['duration'] : '',
                             'tags' => is_string($r['tags']) ? $r['tags'] : '',
                             'published' => is_string($r['published']) ? $r['published'] : '',
+                            'permalink' => $pid > 0 ? get_permalink($pid) : home_url('/'.sanitize_title(is_string($r['title']) ? $r['title'] : '').'/'),
                             'categories' => array_map(function($c){ return ['id'=>intval($c['id']),'name'=>is_string($c['name'])?$c['name']:'','slug'=>is_string($c['slug'])?$c['slug']:'']; }, \PodifyPodcast\Core\Database::get_episode_categories(intval($r['id']))),
                         ];
                     }
