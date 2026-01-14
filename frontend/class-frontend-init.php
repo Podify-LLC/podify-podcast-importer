@@ -165,11 +165,6 @@ class FrontendInit {
         $html .= 'var TOTAL_COUNT='.wp_json_encode(intval($total_count)).';';
         $html .= 'var LAYOUT='.wp_json_encode($layout).';';
         $html .= 'var BASE_URL='.wp_json_encode( trailingslashit(home_url()) ).';';
-        // Debug: Log episode data to check for missing audio
-        $html .= 'console.log("Podify Debug: Loaded '.count($episodes).' episodes");';
-        $html .= 'var debugEps = '.wp_json_encode(array_map(function($e){ return ['title'=>$e['title'], 'audio'=>$e['audio_url']]; }, $episodes)).';';
-        $html .= 'console.log("Podify Debug: Episodes Data", debugEps);';
-        $html .= 'debugEps.forEach(function(ep){ if(!ep.audio) console.warn("Podify Warning: Episode \\""+ ep.title + "\\" has no audio URL. Check Importer settings or Feed."); });';
         $html .= 'function setCardMediaAspect(root){var imgs=(root?root.querySelectorAll(".podify-episode-media img"):document.querySelectorAll(".podify-episode-media img"));imgs.forEach(function(img){function apply(){var w=img.naturalWidth||0,h=img.naturalHeight||0;if(w>0&&h>0){var p=img.parentElement;if(p){p.style.aspectRatio=w+" / "+h;img.style.width="100%";img.style.height="100%";img.style.objectFit="contain";}}}if(img.complete){apply();}else{img.addEventListener("load",apply,{once:true});}});}setCardMediaAspect();';
         $html .= 'function ensureLayoutAndLinks(root){var grids=(root?root.querySelectorAll(".podify-episodes-grid"):document.querySelectorAll(".podify-episodes-grid"));grids.forEach(function(g){var lay=g.getAttribute("data-layout")||LAYOUT||"classic";g.querySelectorAll(".podify-episode-card").forEach(function(card){if(lay==="modern"){card.classList.add("podify-modern");}var descEl=card.querySelector(".podify-episode-desc");var metaEl=card.querySelector(".podify-episode-meta");var actions=card.querySelector(".podify-episode-actions");var existingLink=card.querySelector(".podify-read-more");var t=card.getAttribute("data-title")||"";var slug=t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");var url=BASE_URL+slug+"/";if(!existingLink){existingLink=document.createElement("a");existingLink.className="podify-read-more";existingLink.textContent="Read more »";existingLink.href=url;}else{existingLink.href=existingLink.href||url;}if(lay==="modern"){if(actions){actions.insertBefore(existingLink, actions.firstChild);}else if(metaEl){metaEl.parentElement.insertBefore(existingLink, metaEl.nextSibling);}else if(descEl){descEl.parentElement.appendChild(existingLink);} }else{if(actions && actions.contains(existingLink)){actions.removeChild(existingLink);}if(descEl){descEl.parentElement.insertBefore(existingLink, actions||metaEl||null);}else{card.appendChild(existingLink);} } });});}ensureLayoutAndLinks();';
         
@@ -240,19 +235,16 @@ class FrontendInit {
         // Inline JS for sticky player logic
         $html .= '<script>
         (function(){
-            console.log("Podify: Sticky Player Script Loaded");
             var EP_URL = '.wp_json_encode( esc_url_raw( rest_url('podify/v1/episodes') ) ).';
             var FEED_ID = '.wp_json_encode( $feed_id ? intval($feed_id) : null ).';
             var FEED_ID_JS = (FEED_ID !== null && FEED_ID !== undefined) ? FEED_ID : (function(){ var el = document.querySelector(".podify-episodes-grid[data-feed]"); if(!el) return null; var v = parseInt(el.getAttribute("data-feed")); return isNaN(v)?null:v; })();
             var player = document.getElementById("podify-sticky-player");
             if(!player) { console.error("Podify: Sticky player element not found in DOM"); return; }
-            else { 
-                console.log("Podify: Sticky player found", player); 
+            else {
                 // Move player to body to ensure fixed positioning works relative to viewport
                 // This fixes issues where the player is trapped inside a container with transform/filter
                 if (player.parentNode !== document.body) {
                     document.body.appendChild(player);
-                    console.log("Podify: Moved sticky player to body root");
                 }
             }
 

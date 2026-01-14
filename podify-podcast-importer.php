@@ -1,10 +1,11 @@
 <?php
 /**
- * Plugin Name: Podify Podcast Importer
- * Description: Production-ready podcast importer with RSS sync, admin management, list-style UI, and extensible architecture.
+ * Plugin Name: Podify Podcast Importer Pro
+ * Plugin URI: https://github.com/Podify-LLC/podify-podcast-importer
+ * Description: Advanced podcast importer for WordPress.
  * Version: 1.0.0
  * Author: Podify
- * Text Domain: podify-podcast-importer
+ * Text Domain: podify-podcast-importer-pro
  */
 
 defined('ABSPATH') || exit;
@@ -19,3 +20,10 @@ register_activation_hook(__FILE__, ['PodifyPodcast\\Core\\Loader', 'activate']);
 register_deactivation_hook(__FILE__, ['PodifyPodcast\\Core\\Loader', 'deactivate']);
 
 add_action('init', ['PodifyPodcast\\Core\\Loader', 'init']);
+
+if (is_admin()) {
+    require_once PODIFY_PODCAST_PATH . 'includes/class-podify-github-updater.php';
+    require_once PODIFY_PODCAST_PATH . 'includes/class-podify-updater-settings.php';
+    new \PodifyPodcast\Core\Podify_Github_Updater(__FILE__);
+    \PodifyPodcast\Core\Podify_Updater_Settings::register();
+}
