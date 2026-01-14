@@ -111,6 +111,21 @@ For each new version:
 ### Unreleased
 - No changes yet.
 
+### 1.0.4
+- Fix modern card layout for `[podify_podcast_list layout="modern"]` on the frontend.
+- Add per-episode checkboxes in the Podcast Episodes admin table.
+- Add “Select all” checkbox to quickly toggle all visible episodes.
+
+### 1.0.3
+- Make Podcast Episodes admin search run live with a debounced Apply.
+- Add “Select items per page” placeholder for episodes page size filter.
+- When removing a feed, trash WordPress posts linked to that feed only.
+
+### 1.0.2
+- Increase maximum admin Podcast Episodes page size to 500 items per page.
+- Make admin episodes pagination count respect search and “has audio only” filters.
+- Improve admin category dropdowns with a clearer “Select category” placeholder.
+
 ### 1.0.1
 - Add private GitHub auto-updater with checksum validation, rollback, and branch lock.
 - Add **Settings → Podify Updater** admin page for token, debug logging, and branch.

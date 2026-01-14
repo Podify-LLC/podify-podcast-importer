@@ -8,8 +8,13 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 
 ## 1.0.4
 
+### Title
+- Modern layout and admin episode selection improvements
+
 ### Changed
 - Fix modern card layout for `[podify_podcast_list layout="modern"]` on the frontend.
+- Add per-episode checkboxes in the Podcast Episodes admin table.
+- Add “Select all” checkbox to quickly toggle all visible episodes.
 
 ## 1.0.3
 

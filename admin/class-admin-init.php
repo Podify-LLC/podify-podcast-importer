@@ -242,7 +242,7 @@ class AdminInit {
             }
             $offset_cur = is_array($episodes) ? count($episodes) : 0;
             echo '<div class="podify-table-wrap">';
-            echo '<table id="podify-admin-episodes" class="widefat" data-feed="'.$feed_filter.'" data-offset="'.$offset_cur.'" data-limit="'.$limit_ep.'" data-page="1"'.($feed_filter ? ' data-total-episodes="'.intval($total_episodes).'" data-total-pages="'.intval($total_pages).'"' : '').'><thead><tr><th>Title</th><th>Feed</th><th>Published</th><th>Audio URL</th><th>Image URL</th><th>Category</th></tr></thead><tbody>';
+            echo '<table id="podify-admin-episodes" class="widefat" data-feed="'.$feed_filter.'" data-offset="'.$offset_cur.'" data-limit="'.$limit_ep.'" data-page="1"'.($feed_filter ? ' data-total-episodes="'.intval($total_episodes).'" data-total-pages="'.intval($total_pages).'"' : '').'><thead><tr><th style="width:32px"><input type="checkbox" id="podify-ep-select-all"></th><th>Title</th><th>Feed</th><th>Published</th><th>Audio URL</th><th>Image URL</th><th>Category</th></tr></thead><tbody>';
             if ($episodes) {
                 foreach ($episodes as $e) {
                     $title = esc_html($e['title']);
@@ -262,10 +262,10 @@ class AdminInit {
                         }
                     }
                     $select .= '</select><div class="podify-assigned">Assigned: '.$assigned_names.'</div>';
-                    echo '<tr><td>'.$title.'</td><td>'.$feed_id.'</td><td>'.$pub.'</td><td>'.$audioCell.'</td><td>'.$imageCell.'</td><td>'.$select.'</td></tr>';
+                    echo '<tr><td><input type="checkbox" class="podify-ep-select" value="'.intval($e['id']).'"></td><td>'.$title.'</td><td>'.$feed_id.'</td><td>'.$pub.'</td><td>'.$audioCell.'</td><td>'.$imageCell.'</td><td>'.$select.'</td></tr>';
                 }
             } else {
-                echo '<tr><td colspan="6">No episodes</td></tr>';
+                echo '<tr><td colspan="7">No episodes</td></tr>';
             }
             echo '</tbody></table>';
             echo '</div>';
@@ -277,6 +277,7 @@ class AdminInit {
             echo 'const ASSIGN_URL = '.wp_json_encode($assign_url).';';
             echo 'const NONCE = '.wp_json_encode($nonce).';';
             echo 'document.addEventListener("change", function(e){ var sel = e.target.closest(".podify-assign-cat"); if(!sel) return; var eid = parseInt(sel.getAttribute("data-episode")); var cid = parseInt(sel.value); if(!eid || !cid) return; sel.disabled = true; fetch(ASSIGN_URL,{method:"POST",headers:{"Content-Type":"application/json","X-WP-Nonce":NONCE},body:JSON.stringify({episode_id:eid,category_id:cid})}).then(function(r){return r.json()}).then(function(d){ sel.disabled=false; if(d && d.ok){ sel.nextElementSibling && (sel.nextElementSibling.textContent = "Assigned: " + sel.options[sel.selectedIndex].text); } else { alert("Failed to assign"); } }).catch(function(){ sel.disabled=false; alert("Failed"); }); });';
+            echo 'document.addEventListener("change", function(e){ var master = e.target.closest("#podify-ep-select-all"); if(!master) return; var table = document.getElementById("podify-admin-episodes"); if(!table) return; var boxes = table.querySelectorAll(".podify-ep-select"); boxes.forEach(function(b){ b.checked = master.checked; }); });';
             if ($feed_filter) {
                 $episodes_url = esc_url_raw( rest_url('podify/v1/episodes') );
                 $cats_url = esc_url_raw( rest_url('podify/v1/categories') );
@@ -285,6 +286,9 @@ class AdminInit {
                 echo 'let PODIFY_CATS = [];';
                 echo 'function fetchCats(){ return fetch(CATS_URL + "?feed_id='.intval($feed_filter).'", {headers:{"X-WP-Nonce":NONCE}}).then(function(r){return r.json()}).then(function(d){ PODIFY_CATS = (d && d.items) ? d.items : []; }).catch(function(){ PODIFY_CATS = []; }); }';
                 echo 'function makeCatSelect(epId){ var html = \'<select class="podify-assign-cat" data-episode="\'+epId+\'"><option value="">Select category</option>\'; PODIFY_CATS.forEach(function(c){ html += \'<option value="\'+(c.id||0)+\'">\'+(c.name||"")+\'</option>\'; }); html += \'</select><div class="podify-assigned">Assigned: —</div>\'; return html; }';
+                echo 'function ensureEpisodeCheckboxes(){ var table=document.getElementById("podify-admin-episodes"); if(!table) return; var rows=table.querySelectorAll("tbody tr"); rows.forEach(function(tr){ if(tr.querySelector(".podify-ep-select")) return; var sel=tr.querySelector(".podify-assign-cat"); var eid=sel?parseInt(sel.getAttribute("data-episode"))||0:0; var firstCell=tr.querySelector("td"); if(!firstCell) return; var td=document.createElement("td"); var val=eid?String(eid):""; td.innerHTML = \'<input type="checkbox" class="podify-ep-select" value="\'+val+\'">\'; tr.insertBefore(td, firstCell); }); }';
+                echo 'function initEpisodeCheckboxObserver(){ var table=document.getElementById("podify-admin-episodes"); if(!table || !window.MutationObserver) return; var tbody=table.querySelector("tbody"); if(!tbody) return; var obs=new MutationObserver(function(){ ensureEpisodeCheckboxes(); }); obs.observe(tbody,{childList:true}); }';
+                echo 'ensureEpisodeCheckboxes(); initEpisodeCheckboxObserver();';
                 echo 'function setPageLabel(p){ var el=document.getElementById("podify-admin-page"); if(!el) return; var table=document.getElementById("podify-admin-episodes"); var totalPages=1; var totalEpisodes=0; if(table){ var tp=parseInt(table.getAttribute("data-total-pages"))||0; var te=parseInt(table.getAttribute("data-total-episodes"))||0; if(tp>0) totalPages=tp; if(te>0) totalEpisodes=te; } var label="Page "+String(p)+" of "+String(totalPages); if(totalEpisodes>0){ label += " ("+String(totalEpisodes)+" episodes)"; } el.textContent=label; }';
                 echo 'function setPrevNextDisabled(prevDis,nextDis){ var p=document.getElementById("podify-admin-prev"); var n=document.getElementById("podify-admin-next"); if(p) p.disabled=!!prevDis; if(n) n.disabled=!!nextDis; }';
                 echo 'function buildParams(limit, offset){ var q=(document.getElementById("podify-ep-search")||{value:""}).value||""; var ob=(document.getElementById("podify-ep-orderby")||{value:"published"}).value||"published"; var or=(document.getElementById("podify-ep-order")||{value:"desc"}).value||"desc"; var ha=(document.getElementById("podify-ep-audio")||{checked:false}).checked?1:0; var s="&limit="+encodeURIComponent(limit)+"&offset="+encodeURIComponent(offset); if(q.length){ s += "&q="+encodeURIComponent(q); } if(ob){ s += "&orderby="+encodeURIComponent(ob); } if(or){ s += "&order="+encodeURIComponent(or); } if(ha){ s += "&has_audio=1"; } return s; }';
