@@ -6,6 +6,13 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 
 - No changes yet.
 
+## 1.0.2
+
+### Changed
+- Increase maximum admin Podcast Episodes page size to 500 items per page.
+- Make admin episodes pagination count respect search and “has audio only” filters.
+- Improve admin category dropdowns with a clearer “Select category” placeholder.
+
 ## 1.0.1
 
 ### Added

@@ -46,11 +46,11 @@ class RestInit {
                 $has_audio = (bool)$req->get_param('has_audio');
                 $orderby = (string)$req->get_param('orderby');
                 $order = (string)$req->get_param('order');
-                if ($limit <= 0 || $limit > 50) $limit = 9;
+                if ($limit <= 0 || $limit > 500) $limit = 9;
                 if ($offset < 0) $offset = 0;
                 $use_adv = ($q !== '') || $has_audio || ($category_id > 0) || ($orderby !== '') || ($order !== '');
                 if ($use_adv) {
-                    $rows = \PodifyPodcast\Core\Database::get_episodes_advanced([
+                    $opts = [
                         'feed_id' => $feed_id ?: null,
                         'limit' => $limit,
                         'offset' => $offset,
@@ -59,9 +59,12 @@ class RestInit {
                         'has_audio' => $has_audio,
                         'orderby' => $orderby,
                         'order' => $order
-                    ]);
+                    ];
+                    $rows = \PodifyPodcast\Core\Database::get_episodes_advanced($opts);
+                    $total = \PodifyPodcast\Core\Database::count_episodes_advanced($opts);
                 } else {
                     $rows = \PodifyPodcast\Core\Database::get_episodes($feed_id ?: null, $limit, $offset, null);
+                    $total = \PodifyPodcast\Core\Database::count_episodes($feed_id ?: null, $category_id ?: null);
                 }
                 $items = [];
                 if (is_array($rows)) {
@@ -91,7 +94,6 @@ class RestInit {
                         ];
                     }
                 }
-                $total = \PodifyPodcast\Core\Database::count_episodes($feed_id ?: null, $category_id ?: null);
                 return [
                     'ok' => true,
                     'items' => $items,

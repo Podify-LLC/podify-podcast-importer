@@ -2,7 +2,7 @@
 # Podify Podcast Importer Pro
 
 - Contributors: podify
-- Version: 1.0.1
+- Version: 1.0.2
 - Requires at least: 6.0
 - Tested up to: 6.5
 
@@ -49,7 +49,7 @@ Podify Podcast Importer Pro supports secure auto-updates directly from a private
 ### Requirements
 
 - Private repo: `Podify-LLC/podify-podcast-importer`.
-- Releases tagged using the format: `v1.0.1`, `v1.0.2`, etc.
+- Releases tagged using the format: `v1.0.2`, `v1.0.3`, etc.
 - Releases must target the locked branch (default `main`).
 - Each release must include:
   - A ZIP asset containing the plugin folder `podify-podcast-importer-pro/`.

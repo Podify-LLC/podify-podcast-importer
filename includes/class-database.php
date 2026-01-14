@@ -166,7 +166,7 @@ class Database {
     public static function get_episodes_advanced($opts = []) {
         global $wpdb;
         $feed_id = isset($opts['feed_id']) ? intval($opts['feed_id']) : null;
-        $limit = isset($opts['limit']) ? max(1, min(200, intval($opts['limit']))) : 10;
+        $limit = isset($opts['limit']) ? max(1, min(500, intval($opts['limit']))) : 10;
         $offset = isset($opts['offset']) ? max(0, intval($opts['offset'])) : 0;
         $category_id = isset($opts['category_id']) ? intval($opts['category_id']) : null;
         $q = isset($opts['q']) ? trim((string)$opts['q']) : '';
@@ -203,6 +203,40 @@ class Database {
         $params[] = $offset;
         $sql = $wpdb->prepare($sql, $params);
         return $wpdb->get_results($sql, ARRAY_A);
+    }
+    public static function count_episodes_advanced($opts = []) {
+        global $wpdb;
+        $feed_id = isset($opts['feed_id']) ? intval($opts['feed_id']) : null;
+        $category_id = isset($opts['category_id']) ? intval($opts['category_id']) : null;
+        $q = isset($opts['q']) ? trim((string)$opts['q']) : '';
+        $has_audio = !empty($opts['has_audio']);
+        $tbl = "{$wpdb->prefix}podify_podcast_episodes";
+        $sql = "SELECT COUNT(*) FROM $tbl e";
+        $params = [];
+        $wheres = [];
+        if ($category_id) {
+            $sql .= " INNER JOIN {$wpdb->prefix}podify_podcast_episode_categories ec ON ec.episode_id = e.id";
+            $wheres[] = "ec.category_id = %d";
+            $params[] = intval($category_id);
+        }
+        if ($feed_id) {
+            $wheres[] = "e.feed_id = %d";
+            $params[] = intval($feed_id);
+        }
+        if ($has_audio) {
+            $wheres[] = "e.audio_url IS NOT NULL AND e.audio_url <> ''";
+        }
+        if ($q !== '') {
+            $like = '%' . $wpdb->esc_like($q) . '%';
+            $wheres[] = "(e.title LIKE %s OR e.description LIKE %s)";
+            $params[] = $like;
+            $params[] = $like;
+        }
+        if (!empty($wheres)) {
+            $sql .= " WHERE " . implode(" AND ", $wheres);
+        }
+        $sql = $wpdb->prepare($sql, $params);
+        return intval($wpdb->get_var($sql));
     }
     public static function get_categories($feed_id = null) {
         global $wpdb;
