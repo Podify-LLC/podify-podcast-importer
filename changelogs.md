@@ -6,6 +6,11 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 
 - No changes yet.
 
+## 1.0.4
+
+### Changed
+- Fix modern card layout for `[podify_podcast_list layout="modern"]` on the frontend.
+
 ## 1.0.3
 
 ### Changed
