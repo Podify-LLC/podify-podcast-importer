@@ -120,8 +120,23 @@ class Database {
     public static function remove_feed($id) {
         global $wpdb;
         if (!$id) return false;
-        $wpdb->delete("{$wpdb->prefix}podify_podcast_feeds", ['id' => intval($id)]);
-        $wpdb->delete("{$wpdb->prefix}podify_podcast_episodes", ['feed_id' => intval($id)]);
+        $id = intval($id);
+        $table = "{$wpdb->prefix}podify_podcast_episodes";
+        $post_ids = $wpdb->get_col( $wpdb->prepare("SELECT DISTINCT post_id FROM $table WHERE feed_id = %d AND post_id IS NOT NULL", $id) );
+        if ($post_ids) {
+            foreach ($post_ids as $pid) {
+                $pid = intval($pid);
+                if ($pid > 0) {
+                    if (function_exists('wp_trash_post')) {
+                        wp_trash_post($pid);
+                    } else {
+                        wp_delete_post($pid, true);
+                    }
+                }
+            }
+        }
+        $wpdb->delete("{$wpdb->prefix}podify_podcast_feeds", ['id' => $id]);
+        $wpdb->delete("{$wpdb->prefix}podify_podcast_episodes", ['feed_id' => $id]);
         return true;
     }
     public static function update_feed_options($id, $options) {

@@ -6,6 +6,13 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 
 - No changes yet.
 
+## 1.0.3
+
+### Changed
+- Make Podcast Episodes admin search run live with a debounced Apply.
+- Add “Select items per page” placeholder for episodes page size filter.
+- When removing a feed, trash WordPress posts linked to that feed only.
+
 ## 1.0.2
 
 ### Changed

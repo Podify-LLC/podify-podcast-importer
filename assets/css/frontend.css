@@ -18,6 +18,9 @@
 .podify-episode-card.podify-modern { flex-direction: column; }
 .podify-episode-media { background: transparent; width: 38%; height: auto; position: relative; overflow: hidden; }
 .podify-episode-card.podify-modern .podify-episode-media { width: 100%; }
+.podify-episodes-grid[data-layout="modern"] .podify-episode-card { flex-direction: column; }
+.podify-episodes-grid[data-layout="modern"] .podify-episode-media,
+.podify-episodes-grid[data-layout="modern"] .podify-episode-body { width: 100%; }
 .podify-play-overlay {
   position: static;
   background: none;
