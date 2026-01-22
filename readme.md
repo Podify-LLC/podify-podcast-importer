@@ -2,7 +2,7 @@
 # Podify Podcast Importer Pro
 
 - Contributors: podify
-- Version: 1.0.4
+- Version: 1.0.5
 - Requires at least: 6.0
 - Tested up to: 6.5
 
@@ -110,6 +110,10 @@ For each new version:
 
 ### Unreleased
 - No changes yet.
+
+### 1.0.5
+- Fix critical bug where the updater blocked other plugins from updating.
+- Automatically rename plugin folder during update if the ZIP name doesn't match.
 
 ### 1.0.4
 - Fix modern card layout for `[podify_podcast_list layout="modern"]` on the frontend.

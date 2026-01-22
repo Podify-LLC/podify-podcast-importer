@@ -6,6 +6,12 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 
 - No changes yet.
 
+## 1.0.5
+
+### Fixed
+- Fix critical updater bug that blocked other plugins from updating.
+- Fix "Invalid plugin folder in ZIP" error by automatically renaming mismatched folders (e.g. from GitHub branch zips).
+
 ## 1.0.4
 
 ### Title
