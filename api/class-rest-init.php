@@ -46,6 +46,10 @@ class RestInit {
                 $has_audio = (bool)$req->get_param('has_audio');
                 $orderby = (string)$req->get_param('orderby');
                 $order = (string)$req->get_param('order');
+
+                // DEBUG LOGGING
+                error_log(sprintf('Podify API /episodes: feed_id=%d limit=%d offset=%d cat=%d q=%s', $feed_id, $limit, $offset, $category_id, $q));
+
                 if ($limit <= 0 || $limit > 500) $limit = 9;
                 if ($offset < 0) $offset = 0;
                 $use_adv = ($q !== '') || $has_audio || ($category_id > 0) || ($orderby !== '') || ($order !== '');
@@ -94,12 +98,14 @@ class RestInit {
                         ];
                     }
                 }
-                return [
+                $resp = new \WP_REST_Response([
                     'ok' => true,
                     'items' => $items,
                     'next_offset' => $offset + (is_array($rows) ? count($rows) : 0),
                     'total_count' => intval($total)
-                ];
+                ]);
+                $resp->header('Content-Type', 'application/json; charset=utf-8');
+                return $resp;
             }
         ]);
         register_rest_route('podify/v1','/categories',[

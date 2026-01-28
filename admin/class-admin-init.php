@@ -110,6 +110,12 @@ class AdminInit {
                 }
             }
         }
+        if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'clear_cache') {
+            check_admin_referer('podify_clear_cache');
+            delete_site_transient('update_plugins');
+            delete_transient('podify_updater_check');
+            $notice = 'Cache cleared';
+        }
         $feeds = \PodifyPodcast\Core\Database::get_feeds();
         $episodes = \PodifyPodcast\Core\Database::get_episodes(null, 10, 0);
         $sync_url = esc_url_raw( rest_url('podify/v1/sync') );
@@ -356,6 +362,12 @@ class AdminInit {
             $custom_css = !empty($settings['custom_css']) ? $settings['custom_css'] : '';
             echo '<div class="podify-field"><label>Custom CSS for Episode Cards</label><textarea name="custom_css" rows="12" placeholder="/* Add CSS to style the episode cards and category pills */" style="height: 125px;">'.esc_textarea($custom_css).'</textarea><p class="description">Control layout per shortcode: [podify_podcast_list layout="classic|modern"]. Target elements like .podify-episode-card, .podify-episode-title, .podify-category-pill. Your CSS is injected sitewide.</p></div>';
             echo '<div class="podify-actions"><button class="button button-primary">Save Settings</button></div></form>';
+            echo '</div>';
+            echo '<div class="podify-card"><h3>Tools</h3>';
+            echo '<form method="post"><input type="hidden" name="podify_action" value="clear_cache">';
+            wp_nonce_field('podify_clear_cache');
+            echo '<p>Clear plugin caches and force update checks.</p>';
+            echo '<div class="podify-actions"><button class="button">Clear Cache</button></div></form>';
             echo '</div>';
             echo '</div>';
         }
