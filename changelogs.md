@@ -2,9 +2,45 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
-## Unreleased
+## 1.0.16
 
-- No changes yet.
+### Title
+- Shortcode category support and Admin UI enhancements
+
+### Added
+- Add category support to `[podify_podcast_list]` shortcode (filter by ID, slug, or name).
+- Display category pills in Modern and Classic list layouts.
+- Add Category filter to Admin Episodes table.
+- Add centered loader for Admin table actions.
+
+### Changed
+- Improve search logic to support multi-word matching in Admin Episodes.
+- Unify input sizes in Admin filter bar.
+
+### Fixed
+- Fix "Load more" functionality to correctly preserve category pills.
+
+## 1.0.15
+
+### Changed
+- Internal updates and maintenance.
+
+## 1.0.14
+
+### Title
+- Admin fixes and frontend UI improvements
+
+### Fixed
+- Fix PHP syntax error in admin initialization (unclosed brace).
+- Fix admin pagination visibility issues.
+- Fix UI overlap between Play button and "Read more" link in episode list.
+
+### Changed
+- Improve "Read more" link resolution with fallback to slug search.
+- Conditionally hide play button in episode list if sticky player is disabled.
+
+### Added
+- Inject episode player into single post views (after featured image).
 
 ## 1.0.5
 

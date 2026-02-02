@@ -2,7 +2,7 @@
 # Podify Podcast Importer Pro
 
 - Contributors: podify
-- Version: 1.0.5
+- Version: 1.0.15
 - Requires at least: 6.0
 - Tested up to: 6.5
 
@@ -108,14 +108,38 @@ For each new version:
 
 ## Changelog
 
-### Unreleased
-- No changes yet.
+### 1.0.15
+- Improved feed deletion logic: Categories are now unlinked (assigned to feed 0) instead of deleted when a feed is removed.
+- Added category reassignment: Admins can now reassign existing categories to different feeds via the dashboard.
+- Enhanced `[podify_podcast_list]` shortcode: Explicit support for `feed_id`, `category_id`, and `layout="modern"`.
+- Fixed shortcode filtering: Filters now correctly apply to initial load and "Load More" pagination.
+- Add Categories admin tab to create per-feed categories.
+- Add category assignment dropdowns in Latest Episodes table.
+- Extend episodes REST route to accept category_id filtering.
+- Update [podify_podcast_list] to accept category_id; Load More respects filters.
+- Remove sticky player shortcode; player is injected globally via settings.
+- Display Category ID column in the admin Categories table.
+- Improve card image sizing to display edge-to-edge using natural aspect ratio.
+- Increase sticky player height to 96px for clearer time display.
+- Add 12px offset for top/bottom positions to avoid viewport edge clipping.
+- Remove per-card audio controls; cards show a single play button only.
+- Route card play actions through sticky player; duration updates in player.
+- Prefer WordPress post meta for audio/image/duration with DB fallback.
+- Improve sticky player initialization for reliable fixed positioning.
+- Rename “Latest Episodes” tab to “Podcast Episodes”.
+- Add “View Episodes” button on Scheduled Imports to open feed-specific episodes.
+- Make Podcast Episodes table scrollable within a fixed-height container.
+- Add pagination (Prev/Next) for feed-specific episodes; server-friendly page sizes.
+- Add filters: search, order by (published/title), order (asc/desc), and “has audio only”.
+- Extend episodes REST route to support q/orderby/order/has_audio; add advanced DB query.
+- Ensure “Show all for this feed” keeps the feed filter applied.
 
-### 1.0.5
-- Fix critical bug where the updater blocked other plugins from updating.
-- Automatically rename plugin folder during update if the ZIP name doesn't match.
-
-### 1.0.4
+### 1.0.14
+- Fixed admin syntax error and pagination issues.
+- Improved "Read more" link resolution logic.
+- Fixed UI overlap in episode list.
+- Added single episode player injection.
+- Conditionally hide play button when sticky player is disabled.
 - Fix modern card layout for `[podify_podcast_list layout="modern"]` on the frontend.
 - Add per-episode checkboxes in the Podcast Episodes admin table.
 - Add “Select all” checkbox to quickly toggle all visible episodes.

@@ -6,6 +6,19 @@ class RestInit {
         add_action('rest_api_init',[self::class,'routes']);
     }
     public static function routes() {
+        register_rest_route('podify/v1','/progress',[
+            'methods' => 'GET',
+            'permission_callback' => function() { return current_user_can('manage_options'); },
+            'callback' => function(\WP_REST_Request $req) {
+                $feed_id = intval($req->get_param('feed_id'));
+                if (!$feed_id) return ['ok'=>false];
+                $progress = get_transient('podify_import_progress_' . $feed_id);
+                if (!$progress) {
+                    return ['ok' => true, 'percentage' => 0, 'status' => 'idle'];
+                }
+                return ['ok' => true, 'percentage' => $progress['percentage'], 'status' => $progress['status'], 'current' => $progress['current'], 'total' => $progress['total']];
+            }
+        ]);
         register_rest_route('podify/v1','/sync',[
             'methods' => 'POST',
             'permission_callback' => function() {
@@ -16,8 +29,13 @@ class RestInit {
                 if (!$feed_id) {
                     return ['ok' => false, 'message' => 'Missing feed_id'];
                 }
-                $res = \PodifyPodcast\Core\Importer::import_feed($feed_id);
-                return $res;
+                try {
+                    $res = \PodifyPodcast\Core\Importer::import_feed($feed_id);
+                    return $res;
+                } catch (\Throwable $e) {
+                    \PodifyPodcast\Core\Logger::log('Sync Exception: ' . $e->getMessage());
+                    return ['ok' => false, 'message' => 'Server Error: ' . $e->getMessage()];
+                }
             }
         ]);
         register_rest_route('podify/v1','/resync',[
@@ -30,8 +48,13 @@ class RestInit {
                 if (!$feed_id) {
                     return ['ok' => false, 'message' => 'Missing feed_id'];
                 }
-                $res = \PodifyPodcast\Core\Importer::resync_feed($feed_id);
-                return $res;
+                try {
+                    $res = \PodifyPodcast\Core\Importer::resync_feed($feed_id);
+                    return $res;
+                } catch (\Throwable $e) {
+                    \PodifyPodcast\Core\Logger::log('Resync Exception: ' . $e->getMessage());
+                    return ['ok' => false, 'message' => 'Server Error: ' . $e->getMessage()];
+                }
             }
         ]);
         register_rest_route('podify/v1','/episodes',[
@@ -82,6 +105,49 @@ class RestInit {
                             if (!empty($maudio) && wp_http_validate_url($maudio)) { $audio = esc_url($maudio); }
                             if (!empty($mimage) && wp_http_validate_url($mimage)) { $image = esc_url($mimage); }
                         }
+                        $permalink = '';
+                        if ($pid > 0) {
+                            $status = get_post_status($pid);
+                            if ($status && !in_array($status, ['trash', 'auto-draft'])) {
+                                $permalink = get_permalink($pid);
+                            }
+                        }
+                        
+                        $check_title = !empty($r['title']) ? (string)$r['title'] : '';
+                        if (!$permalink && $check_title) {
+                            $pts = get_post_types(['public' => true], 'names');
+                            
+                            // 1. Try exact title
+                            $found = get_page_by_title($check_title, OBJECT, $pts);
+                            
+                            // 2. Try decoded title
+                            if (!$found) {
+                                $decoded = html_entity_decode($check_title, ENT_QUOTES | ENT_HTML5);
+                                if ($decoded !== $check_title) {
+                                    $found = get_page_by_title($decoded, OBJECT, $pts);
+                                }
+                            }
+
+                            // 3. Try slug search
+                            if (!$found) {
+                                $slug = sanitize_title($check_title);
+                                $q = new \WP_Query([
+                                    'name' => $slug,
+                                    'post_type' => $pts,
+                                    'post_status' => 'publish',
+                                    'posts_per_page' => 1,
+                                    'fields' => 'ids'
+                                ]);
+                                if ($q->have_posts()) {
+                                    $permalink = get_permalink($q->posts[0]);
+                                }
+                            } elseif ($found) {
+                                $permalink = get_permalink($found->ID);
+                            }
+                        }
+                        if (!$permalink) {
+                            $permalink = home_url('/'.sanitize_title($check_title).'/');
+                        }
                         $items[] = [
                             'id' => intval($r['id']),
                             'post_id' => $pid,
@@ -93,7 +159,7 @@ class RestInit {
                             'duration' => is_string($r['duration']) ? $r['duration'] : '',
                             'tags' => is_string($r['tags']) ? $r['tags'] : '',
                             'published' => is_string($r['published']) ? $r['published'] : '',
-                            'permalink' => $pid > 0 ? get_permalink($pid) : home_url('/'.sanitize_title(is_string($r['title']) ? $r['title'] : '').'/'),
+                            'permalink' => $permalink,
                             'categories' => array_map(function($c){ return ['id'=>intval($c['id']),'name'=>is_string($c['name'])?$c['name']:'','slug'=>is_string($c['slug'])?$c['slug']:'']; }, \PodifyPodcast\Core\Database::get_episode_categories(intval($r['id']))),
                         ];
                     }
@@ -123,9 +189,16 @@ class RestInit {
             'callback' => function(\WP_REST_Request $req) {
                 $id = intval($req->get_param('id'));
                 $name = (string)$req->get_param('name');
+                $feed_id = $req->get_param('feed_id');
                 if (!$id || trim($name) === '') return ['ok'=>false,'message'=>'Invalid payload'];
-                $ok = \PodifyPodcast\Core\Database::update_category($id, $name);
-                return ['ok' => (bool)$ok];
+                
+                $fid = is_numeric($feed_id) ? intval($feed_id) : null;
+                $ok = \PodifyPodcast\Core\Database::update_category($id, $name, $fid);
+                if (!$ok) {
+                    $err = \PodifyPodcast\Core\Database::last_error();
+                    return ['ok' => false, 'message' => $err ?: 'Update failed'];
+                }
+                return ['ok' => true];
             }
         ]);
         register_rest_route('podify/v1','/delete-category',[
@@ -147,6 +220,24 @@ class RestInit {
                 if (!$episode_id || !$category_id) return ['ok'=>false,'message'=>'Invalid payload'];
                 $ok = \PodifyPodcast\Core\Database::assign_episode_category($episode_id, $category_id);
                 return ['ok' => (bool)$ok];
+            }
+        ]);
+        register_rest_route('podify/v1','/bulk-assign-category',[
+            'methods' => 'POST',
+            'permission_callback' => function() { return current_user_can('manage_options'); },
+            'callback' => function(\WP_REST_Request $req) {
+                $episode_ids = $req->get_param('episode_ids');
+                $category_id = intval($req->get_param('category_id'));
+                if (!is_array($episode_ids) || empty($episode_ids) || !$category_id) {
+                    return ['ok'=>false,'message'=>'Invalid payload'];
+                }
+                $count = 0;
+                foreach ($episode_ids as $eid) {
+                    if (\PodifyPodcast\Core\Database::assign_episode_category(intval($eid), $category_id)) {
+                        $count++;
+                    }
+                }
+                return ['ok' => true, 'count' => $count];
             }
         ]);
         register_rest_route('podify/v1','/feed-options',[

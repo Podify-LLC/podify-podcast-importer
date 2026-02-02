@@ -137,6 +137,8 @@ class Database {
         }
         $wpdb->delete("{$wpdb->prefix}podify_podcast_feeds", ['id' => $id]);
         $wpdb->delete("{$wpdb->prefix}podify_podcast_episodes", ['feed_id' => $id]);
+        // Unlink categories from this feed so they can be reassigned
+        $wpdb->update("{$wpdb->prefix}podify_podcast_categories", ['feed_id' => 0], ['feed_id' => $id]);
         return true;
     }
     public static function update_feed_options($id, $options) {
@@ -205,10 +207,19 @@ class Database {
             $wheres[] = "e.audio_url IS NOT NULL AND e.audio_url <> ''";
         }
         if ($q !== '') {
-            $like = '%' . $wpdb->esc_like($q) . '%';
-            $wheres[] = "(e.title LIKE %s OR e.description LIKE %s)";
-            $params[] = $like;
-            $params[] = $like;
+            $words = array_filter(explode(' ', $q));
+            if (!empty($words)) {
+                $q_where = [];
+                foreach ($words as $word) {
+                    $like = '%' . $wpdb->esc_like($word) . '%';
+                    $q_where[] = "(e.title LIKE %s OR e.description LIKE %s)";
+                    $params[] = $like;
+                    $params[] = $like;
+                }
+                if (!empty($q_where)) {
+                    $wheres[] = '(' . implode(' AND ', $q_where) . ')';
+                }
+            }
         }
         if (!empty($wheres)) {
             $sql .= " WHERE " . implode(" AND ", $wheres);
@@ -242,10 +253,19 @@ class Database {
             $wheres[] = "e.audio_url IS NOT NULL AND e.audio_url <> ''";
         }
         if ($q !== '') {
-            $like = '%' . $wpdb->esc_like($q) . '%';
-            $wheres[] = "(e.title LIKE %s OR e.description LIKE %s)";
-            $params[] = $like;
-            $params[] = $like;
+            $words = array_filter(explode(' ', $q));
+            if (!empty($words)) {
+                $q_where = [];
+                foreach ($words as $word) {
+                    $like = '%' . $wpdb->esc_like($word) . '%';
+                    $q_where[] = "(e.title LIKE %s OR e.description LIKE %s)";
+                    $params[] = $like;
+                    $params[] = $like;
+                }
+                if (!empty($q_where)) {
+                    $wheres[] = '(' . implode(' AND ', $q_where) . ')';
+                }
+            }
         }
         if (!empty($wheres)) {
             $sql .= " WHERE " . implode(" AND ", $wheres);
@@ -277,9 +297,8 @@ class Database {
         $category_id = intval($category_id);
         if (!$episode_id || !$category_id) return false;
         self::ensure_installed();
-        // Upsert
-        $exists = $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$wpdb->prefix}podify_podcast_episode_categories WHERE episode_id=%d AND category_id=%d", $episode_id, $category_id));
-        if ($exists) return true;
+       // Remove existing categories for this episode (single category mode)
+        $wpdb->delete("{$wpdb->prefix}podify_podcast_episode_categories", ['episode_id' => $episode_id]);
         return (bool)$wpdb->insert("{$wpdb->prefix}podify_podcast_episode_categories", ['episode_id' => $episode_id, 'category_id' => $category_id]);
     }
     public static function get_episode_categories($episode_id) {
@@ -309,14 +328,23 @@ class Database {
         $sql = $wpdb->prepare($sql, $params);
         return intval($wpdb->get_var($sql));
     }
-    public static function update_category($id, $name) {
+    public static function update_category($id, $name, $feed_id = null) {
         global $wpdb;
         $id = intval($id);
         $name = trim((string)$name);
         if (!$id || $name === '') return false;
         $slug = sanitize_title($name);
         self::ensure_installed();
-        return (bool)$wpdb->update("{$wpdb->prefix}podify_podcast_categories", ['name' => $name, 'slug' => $slug], ['id' => $id]);
+        $data = ['name' => $name, 'slug' => $slug];
+        if (!is_null($feed_id)) {
+            $data['feed_id'] = intval($feed_id);
+        }
+        $result = $wpdb->update("{$wpdb->prefix}podify_podcast_categories", $data, ['id' => $id]);
+        if ($result === false) {
+            self::$last_error = $wpdb->last_error;
+            return false;
+        }
+        return true;
     }
     public static function delete_category($id) {
         global $wpdb;
