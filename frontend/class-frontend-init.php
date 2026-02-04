@@ -456,7 +456,7 @@ class FrontendInit {
         $html .= '        if(ml)h+="<div class=\"podify-episode-meta\">"+ml+"</div>";';
         $html .= '        h+="<div class=\"podify-episode-actions\"><a class=\"podify-read-more\" href=\""+pm+"\">Read more <i class=\"fa fa-angle-right\"></i></a>";';
         $html .= '        if(au && STICKY_ENABLED)h+="<button class=\"podify-play-action-btn\" aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" width=\"36\" height=\"36\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button>";';
-        $html .= '        if(dur)h+="<span class=\"podify-episode-duration\">"+dur+"</span>";';
+        $html .= '        if(dur && STICKY_ENABLED)h+="<span class=\"podify-episode-duration\">"+dur+"</span>";';
         $html .= '        h+="</div></div>";';
         $html .= '      }else{';
         $html .= '        h+="<div class=\"podify-episode-media\">"+(im?"<img src=\""+im+"\" alt=\""+t.replace(/"/g,"&quot;")+"\" loading=\"lazy\">":"<div class=\"podify-episode-placeholder\"></div>")+"</div>";';
@@ -465,7 +465,7 @@ class FrontendInit {
         $html .= '        h+="<a class=\"podify-read-more\" href=\""+pm+"\">Read more <i class=\"fa fa-angle-right\"></i></a>";';
         $html .= '        h+="<div class=\"podify-episode-actions\">";';
         $html .= '        if(au && STICKY_ENABLED)h+="<button class=\"podify-play-action-btn\" aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" width=\"36\" height=\"36\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button>";';
-        $html .= '        if(dur)h+="<span class=\"podify-episode-duration\">"+dur+"</span>";';
+        $html .= '        if(dur && STICKY_ENABLED)h+="<span class=\"podify-episode-duration\">"+dur+"</span>";';
         $html .= '        h+="</div>";';
         $html .= '        if(ml)h+="<div class=\"podify-episode-meta\">"+ml+"</div>";';
         $html .= '        h+="</div>";';

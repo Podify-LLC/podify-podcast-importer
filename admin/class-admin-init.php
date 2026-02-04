@@ -274,40 +274,15 @@ class AdminInit {
             $has_limit_param = isset($_GET['limit']);
 
             // Unified Filter Bar
-            echo '<style>
-                .podify-filter-bar .podify-field { display:flex; flex-direction:column; gap:2px; }
-                .podify-filter-bar label { font-size:12px; font-weight:600; color:#555; }
-                .podify-filter-bar select, .podify-filter-bar input[type="text"], .podify-filter-bar .button { height:32px; box-sizing:border-box; vertical-align:top; }
-                .podify-filter-bar input[type="text"] { line-height:1; }
-                .podify-filter-bar .button { line-height:30px; }
-                
-                /* Centered Loader */
-                .podify-loader-overlay {
-                    position: absolute;
-                    top: 0; left: 0; right: 0; bottom: 0;
-                    background: rgba(255,255,255,0.7);
-                    z-index: 10;
-                    display: none;
-                    justify-content: center;
-                    align-items: center;
-                }
-                .podify-loader-spinner {
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #2271b1;
-                    border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
-                    animation: podify-spin 1s linear infinite;
-                }
-                @keyframes podify-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-                .podify-table-wrap { position: relative; min-height: 200px; }
-            </style>';
-            echo '<div class="podify-filter-bar" style="display:flex; flex-wrap:wrap; gap:15px; align-items:flex-end; margin-bottom:15px;">';
+            // We use the CSS classes defined in admin.css now (podify-admin-header, podify-filters-grid)
             
-            // Bulk Actions Group
-            echo '<div class="podify-bulk-group" style="display:flex; gap:5px; align-items:flex-end;">';
-            echo '<div class="podify-field"><label>Bulk Actions</label><div style="display:flex; gap:5px;"><select id="podify-bulk-action-top" style="max-width:140px"><option value="">Select Action</option><option value="assign_category">Assign Category</option></select>';
-            echo '<select id="podify-bulk-category-top" style="display:none; max-width:180px;"><option value="">Select Category</option>';
+            // 1. Top Header: Bulk Actions (Left) and Pagination Limit (Right)
+            echo '<div class="podify-admin-header">';
+            
+            // Bulk Actions
+            echo '<div class="podify-bulk-group">';
+            echo '<select id="podify-bulk-action-top"><option value="">Bulk Actions</option><option value="assign_category">Assign Category</option></select>';
+            echo '<select id="podify-bulk-category-top" style="display:none; max-width:200px;"><option value="">Select Category</option>';
             $bulk_cats = \PodifyPodcast\Core\Database::get_categories($feed_filter ?: null);
             if ($bulk_cats) {
                 foreach ($bulk_cats as $bc) {
@@ -316,17 +291,25 @@ class AdminInit {
                 }
             }
             echo '</select>';
-            echo '<button class="button" id="podify-bulk-apply-top">Apply</button></div></div>';
+            echo '<button class="button" id="podify-bulk-apply-top">Apply</button>';
+            echo '</div>'; // End bulk group
+
+            // Items per page
+            echo '<div class="podify-limit-group">';
+            echo '<span>Items per page:</span>';
+            echo '<select id="podify-ep-limit"><option value="25"'.($limit_ep===25?' selected':'').'>25</option><option value="50"'.($limit_ep===50?' selected':'').'>50</option><option value="100"'.($limit_ep===100?' selected':'').'>100</option><option value="200"'.($limit_ep===200?' selected':'').'>200</option><option value="500"'.($limit_ep===500?' selected':'').'>500</option></select>';
             echo '</div>';
 
-            // Divider
-            echo '<div style="width:1px; height:32px; background:#ddd; margin:0 5px;"></div>';
+            echo '</div>'; // End header
 
-            // Filters
-            echo '<div class="podify-field"><label>Items per page</label><select id="podify-ep-limit"><option value=""'.(!$has_limit_param?' selected':'').'>Select items per page</option><option value="25"'.($has_limit_param && $limit_ep===25?' selected':'').'>25</option><option value="50"'.($has_limit_param && $limit_ep===50?' selected':'').'>50</option><option value="100"'.($has_limit_param && $limit_ep===100?' selected':'').'>100</option><option value="200"'.($has_limit_param && $limit_ep===200?' selected':'').'>200</option><option value="500"'.($has_limit_param && $limit_ep===500?' selected':'').'>500</option></select></div>';
+            // 2. Filter Grid
+            echo '<div class="podify-filters-grid">';
             
-            // Category Filter
-            echo '<div class="podify-field"><label>Category</label><select id="podify-ep-category" style="max-width:200px"><option value="">All Categories</option>';
+            // Search
+            echo '<div class="podify-field"><label>Search Episodes</label><input type="text" id="podify-ep-search" value="'.esc_attr($search_q).'" placeholder="Title or description..."></div>';
+            
+            // Category
+            echo '<div class="podify-field"><label>Category</label><select id="podify-ep-category"><option value="">All Categories</option>';
             if ($bulk_cats) {
                 foreach ($bulk_cats as $bc) {
                     $lbl = (!$feed_filter && !empty($bc['feed_id'])) ? ('Feed '.$bc['feed_id'].': ') : '';
@@ -335,17 +318,24 @@ class AdminInit {
             }
             echo '</select></div>';
 
-            echo '<div class="podify-field"><label>Search</label><input type="text" id="podify-ep-search" value="'.esc_attr($search_q).'" placeholder="Search title or description"></div>';
-            echo '<div class="podify-field"><label>Order by</label><select id="podify-ep-orderby"><option value="published"'.($orderby_q==='published'?' selected':'').'>Published</option><option value="title"'.($orderby_q==='title'?' selected':'').'>Title</option></select></div>';
+            // Order By
+            echo '<div class="podify-field"><label>Sort By</label><select id="podify-ep-orderby"><option value="published"'.($orderby_q==='published'?' selected':'').'>Published Date</option><option value="title"'.($orderby_q==='title'?' selected':'').'>Title</option></select></div>';
+
+            // Order
             echo '<div class="podify-field"><label>Order</label><select id="podify-ep-order"><option value="desc"'.($order_q==='desc'?' selected':'').'>Desc</option><option value="asc"'.($order_q==='asc'?' selected':'').'>Asc</option></select></div>';
-            echo '<div class="podify-field" style="padding-bottom:5px; height:32px; justify-content:center;"><label style="margin:0; font-weight:normal;"><input type="checkbox" id="podify-ep-audio" value="1"'.($has_audio_q? ' checked':'').'> Has audio only</label></div>';
-            echo '<div class="podify-actions" style="height:32px; display:flex; align-items:flex-end;"><button class="button button-primary" id="podify-ep-apply">Filter</button></div>';
-            echo '</div>';
+
+            // Audio Checkbox
+            echo '<div class="podify-field"><div class="podify-checkbox-field"><label><input type="checkbox" id="podify-ep-audio" value="1"'.($has_audio_q? ' checked':'').'> Has audio only</label></div></div>';
+            
+            // Filter Button
+            echo '<div class="podify-field"><button class="button button-primary" id="podify-ep-apply">Filter</button></div>';
+
+            echo '</div>'; // End filter grid
 
             $offset_cur = 0;
-        echo '<div class="podify-table-wrap">';
-        echo '<div id="podify-table-loader" class="podify-loader-overlay"><div class="podify-loader-spinner"></div></div>';
-        echo '<table id="podify-admin-episodes" class="widefat" data-feed="'.$feed_filter.'" data-offset="'.$offset_cur.'" data-limit="'.$limit_ep.'" data-page="1" data-total-episodes="'.intval($total_episodes).'" data-total-pages="'.intval($total_pages).'"><thead><tr><th style="width:32px"><input type="checkbox" id="podify-ep-select-all"></th><th>Title</th><th>Feed</th><th>Published</th><th>Audio URL</th><th>Image URL</th><th>Category</th></tr></thead><tbody>';
+            echo '<div class="podify-table-wrap">';
+            echo '<div id="podify-table-loader" class="podify-loader-overlay"><div class="podify-loader-spinner"></div></div>';
+        echo '<table id="podify-admin-episodes" class="widefat" data-feed="'.$feed_filter.'" data-offset="'.$offset_cur.'" data-limit="'.$limit_ep.'" data-page="1" data-total-episodes="'.intval($total_episodes).'" data-total-pages="'.intval($total_pages).'"><thead><tr><th class="check-column"><input type="checkbox" id="podify-ep-select-all"></th><th>Title</th><th>Feed</th><th>Published</th><th>Audio URL</th><th>Image URL</th><th>Category</th></tr></thead><tbody>';
             if ($episodes) {
                 foreach ($episodes as $e) {
                     $title = esc_html($e['title']);
@@ -371,8 +361,15 @@ class AdminInit {
                 echo '<tr><td colspan="7">No episodes</td></tr>';
             }
             echo '</tbody></table>';
+            echo '</div>'; // End table wrap
+
+            // 3. Pagination
+            echo '<div class="podify-pagination">';
+            echo '<span id="podify-admin-page">Page 1 of '.intval($total_pages).' ('.intval($total_episodes).' episodes)</span>';
+            echo '<button class="button" id="podify-admin-prev" disabled><span class="dashicons dashicons-arrow-left-alt2" style="line-height:28px"></span></button>';
+            echo '<button class="button" id="podify-admin-next"'.(($limit_ep >= $total_episodes)?' disabled':'').'><span class="dashicons dashicons-arrow-right-alt2" style="line-height:28px"></span></button>';
             echo '</div>';
-            echo '<div class="podify-actions"><button class="button" id="podify-admin-prev" disabled>Prev</button> <span id="podify-admin-page">Page 1 of '.intval($total_pages).'</span> <button class="button" id="podify-admin-next"'.(($limit_ep >= $total_episodes)?' disabled':'').'>Next</button></div>';
+            
             $assign_url = esc_url_raw( rest_url('podify/v1/assign-category') );
             $bulk_assign_url = esc_url_raw( rest_url('podify/v1/bulk-assign-category') );
             echo '<script>(function(){';
