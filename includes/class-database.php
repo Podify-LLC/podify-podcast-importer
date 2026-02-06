@@ -299,7 +299,36 @@ class Database {
         self::ensure_installed();
        // Remove existing categories for this episode (single category mode)
         $wpdb->delete("{$wpdb->prefix}podify_podcast_episode_categories", ['episode_id' => $episode_id]);
-        return (bool)$wpdb->insert("{$wpdb->prefix}podify_podcast_episode_categories", ['episode_id' => $episode_id, 'category_id' => $category_id]);
+        $res = $wpdb->insert("{$wpdb->prefix}podify_podcast_episode_categories", ['episode_id' => $episode_id, 'category_id' => $category_id]);
+
+        if ($res) {
+            // Sync to WordPress Post
+            $post_id = $wpdb->get_var($wpdb->prepare("SELECT post_id FROM {$wpdb->prefix}podify_podcast_episodes WHERE id=%d", $episode_id));
+            $cat_name = $wpdb->get_var($wpdb->prepare("SELECT name FROM {$wpdb->prefix}podify_podcast_categories WHERE id=%d", $category_id));
+            
+            if ($post_id && $cat_name) {
+                $term = term_exists($cat_name, 'category');
+                if (!$term) {
+                    $term = wp_insert_term($cat_name, 'category');
+                }
+                
+                $term_id = 0;
+                if (!is_wp_error($term)) {
+                    if (is_array($term) && isset($term['term_id'])) {
+                        $term_id = intval($term['term_id']);
+                    } elseif (is_object($term) && isset($term->term_id)) {
+                        $term_id = intval($term->term_id);
+                    } elseif (is_numeric($term)) {
+                        $term_id = intval($term);
+                    }
+                }
+
+                if ($term_id > 0) {
+                    wp_set_object_terms($post_id, [$term_id], 'category', false);
+                }
+            }
+        }
+        return (bool)$res;
     }
     public static function get_episode_categories($episode_id) {
         global $wpdb;

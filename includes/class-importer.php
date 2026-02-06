@@ -364,11 +364,25 @@ class Importer {
                 }
             }
             $tagsArr = [];
+            $categoriesArr = [];
             foreach ($item->category as $cat) {
                 $name = trim((string)$cat);
-                if ($name) $tagsArr[] = $name;
+                if ($name) {
+                    $tagsArr[] = $name;
+                    $categoriesArr[] = $name;
+                }
+            }
+            if ($itunes && isset($itunes->category)) {
+                foreach ($itunes->category as $ic) {
+                    $atts = $ic->attributes();
+                    if ($atts && isset($atts['text'])) {
+                        $name = trim((string)$atts['text']);
+                        if ($name) $categoriesArr[] = $name;
+                    }
+                }
             }
             $tags = $tagsArr ? implode(',', array_slice($tagsArr, 0, 6)) : '';
+            $categoriesArr = array_unique($categoriesArr);
 
             if (!$image && $defaultImage) {
                 $image = $defaultImage;
@@ -449,6 +463,7 @@ class Importer {
                     'image_url' => $image ?: (!empty($options['featured_image']) ? self::clean_url($options['featured_image']) : ''),
                     'duration' => $duration,
                     'tags' => $tags,
+                    'categories' => $categoriesArr,
                     'published' => $published,
                 ]);
                 $rowId = intval($wpdb->insert_id);
@@ -500,18 +515,47 @@ class Importer {
             $image = $item_data['image'];
             $duration = $item_data['duration'];
             $tags = $item_data['tags'];
+            $categories = isset($item_data['categories']) ? $item_data['categories'] : [];
+            
+            // Check for manually assigned categories in internal DB and prioritize them
+            $internal_cats = Database::get_episode_categories($rowId);
+            if (!empty($internal_cats)) {
+                $categories = array_map(function($c) { return $c['name']; }, $internal_cats);
+            }
+
             $published = $item_data['published'];
             $options = $item_data['options'];
             $feed_id = $item_data['feed_id'];
 
             if ($post_id > 0) {
-                 if ($audio) { update_post_meta($post_id, '_podify_audio_url', esc_url_raw($audio)); }
+                 if ($audio) { 
+                     update_post_meta($post_id, '_podify_audio_url', esc_url_raw($audio)); 
+                     Logger::log("Updated audio for post $post_id: $audio");
+                 }
                  if ($image) { 
                      update_post_meta($post_id, '_podify_episode_image', esc_url_raw($image)); 
                      self::set_featured_image($post_id, $image);
                  }
                  if ($duration) { update_post_meta($post_id, '_podify_duration', sanitize_text_field($duration)); }
                  if ($tags) { update_post_meta($post_id, '_podify_tags', sanitize_text_field($tags)); }
+                 
+                 // Sync Categories
+                 if (!empty($categories)) {
+                     $cat_ids = [];
+                     foreach ($categories as $cname) {
+                         $term = term_exists($cname, 'category');
+                         if (!$term) {
+                             $term = wp_insert_term($cname, 'category');
+                         }
+                         if (!is_wp_error($term) && isset($term['term_id'])) {
+                             $cat_ids[] = intval($term['term_id']);
+                         }
+                     }
+                     if (!empty($cat_ids)) {
+                         // Use false to REPLACE existing categories (removing Uncategorized)
+                         wp_set_object_terms($post_id, $cat_ids, 'category', false);
+                     }
+                 }
             } else {
                  $pt = !empty($options['post_type']) ? sanitize_key($options['post_type']) : 'post';
                  $ps = !empty($options['post_status']) ? sanitize_key($options['post_status']) : 'publish';
@@ -534,6 +578,24 @@ class Importer {
                      }
                      if ($duration) { update_post_meta($new_post_id, '_podify_duration', sanitize_text_field($duration)); }
                      if ($tags) { update_post_meta($new_post_id, '_podify_tags', sanitize_text_field($tags)); }
+                     
+                     // Sync Categories
+                     if (!empty($categories)) {
+                         $cat_ids = [];
+                         foreach ($categories as $cname) {
+                             $term = term_exists($cname, 'category');
+                             if (!$term) {
+                                 $term = wp_insert_term($cname, 'category');
+                             }
+                             if (!is_wp_error($term) && isset($term['term_id'])) {
+                                 $cat_ids[] = intval($term['term_id']);
+                             }
+                         }
+                         if (!empty($cat_ids)) {
+                             // Use false to REPLACE existing categories (removing Uncategorized)
+                             wp_set_object_terms($new_post_id, $cat_ids, 'category', false);
+                         }
+                     }
                  } else {
                      Logger::log('Importer: Failed to create WP post for episode "'.$title.'"');
                  }

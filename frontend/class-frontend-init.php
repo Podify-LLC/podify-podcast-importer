@@ -4,26 +4,54 @@ namespace PodifyPodcast\Core\Frontend;
 class FrontendInit {
     public static function register() {
         add_shortcode('podify_podcast_list',[self::class,'render_list']);
+        add_shortcode('podify_single_player', [self::class, 'render_single_player']);
         add_action('wp_footer', [self::class, 'inject_sticky_player'], 20);
         add_action('wp_enqueue_scripts', [self::class, 'enqueue_assets_global']);
         add_filter('the_content', [self::class, 'inject_single_player']);
     }
-    
+
+    public static function render_single_player($atts) {
+        $atts = shortcode_atts([
+            'post_id' => 0,
+        ], $atts, 'podify_single_player');
+        
+        $post_id = intval($atts['post_id']);
+        if (!$post_id) {
+            $post_id = get_the_ID();
+        }
+        
+        if (!$post_id) return '';
+        
+        self::enqueue_assets();
+        
+        return self::generate_single_player_html($post_id);
+    }
+
     public static function inject_single_player($content) {
         if (!is_single() || !in_the_loop() || !is_main_query()) {
             return $content;
         }
 
         $post_id = get_the_ID();
+        $player_html = self::generate_single_player_html($post_id);
+        
+        if ($player_html) {
+            return $player_html . make_clickable($content);
+        }
+
+        return $content;
+    }
+    
+    private static function generate_single_player_html($post_id) {
         $audio_url = get_post_meta($post_id, '_podify_audio_url', true);
 
         if (empty($audio_url)) {
-            return $content;
+            return '';
         }
 
         // Validate URL
         if (!wp_http_validate_url($audio_url)) {
-            return $content;
+            return '';
         }
 
         $title = get_the_title($post_id);
@@ -43,7 +71,7 @@ class FrontendInit {
         // Cover
         $player_html .= '<div class="podify-sp-cover">';
         if ($image) {
-            $player_html .= '<img src="'.esc_url($image).'" alt="'.esc_attr($title).'" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: contain;">';
+            $player_html .= '<img src="'.esc_url($image).'" alt="'.esc_attr($title).'" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;">';
         } else {
             $player_html .= '<div class="podify-sp-placeholder"></div>';
         }
@@ -53,6 +81,17 @@ class FrontendInit {
         $player_html .= '<div class="podify-sp-content">';
         $player_html .= '<div class="podify-sp-meta">';
         $player_html .= '<span class="podify-sp-label">Podcast Episode</span>';
+        
+        $cats = get_the_category($post_id);
+        if ($cats && !is_wp_error($cats)) {
+            $player_html .= '<div class="podify-sp-categories">';
+            foreach ($cats as $c) {
+                 if (strcasecmp($c->name, 'Uncategorized') === 0) continue;
+                 $player_html .= '<span class="podify-category-pill">'.esc_html($c->name).'</span>';
+            }
+            $player_html .= '</div>';
+        }
+
         $player_html .= '<h3 class="podify-sp-title">'.esc_html($title).'</h3>';
         $player_html .= '</div>';
         
@@ -62,9 +101,8 @@ class FrontendInit {
         $player_html .= '<svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor"><circle cx="12" cy="12" r="12" fill="#0b5bd3"/><path d="M9.5 8l6 4-6 4V8z" fill="white"/></svg>';
         $player_html .= '</button>';
         
-        $player_html .= '<div class="podify-sp-progress-container">';
-        $player_html .= '<div class="podify-sp-progress-bar"><div class="podify-sp-progress-fill" style="width:0%"></div></div>';
-        $player_html .= '<div class="podify-sp-time">';
+        $player_html .= '<div class="podify-sp-progress-container" style="position:relative; width:100%;"><div style="height:45px; width:100%; position:relative;"><svg class="podify-sp-svg" viewBox="0 0 567 45" preserveAspectRatio="none" style="width:100%; height:100%; display:block;"><path d="M 0 30 L 0 30 A 2.25 2.25 0 0 0 4.5 30 A 2.25 2.25 0 0 1 9 30 L 9 37.14888991369655 A 2.25 2.25 0 0 0 13.5 37.14888991369655 L 13.5 24.81576520192371 A 2.25 2.25 0 0 1 18 24.81576520192371 L 18 40.138563146452334 A 2.25 2.25 0 0 0 22.5 40.138563146452334 L 22.5 19.60218064431122 A 2.25 2.25 0 0 1 27 19.60218064431122 L 27 37.719431451347255 A 2.25 2.25 0 0 0 31.5 37.719431451347255 L 31.5 20.517359509849136 A 2.25 2.25 0 0 1 36 20.517359509849136 L 36 37.415261216153894 A 2.25 2.25 0 0 0 40.5 37.415261216153894 L 40.5 21.577953093089135 A 2.25 2.25 0 0 1 45 21.577953093089135 L 45 37.80570195665064 A 2.25 2.25 0 0 0 49.5 37.80570195665064 L 49.5 21.28045325779037 A 2.25 2.25 0 0 1 54 21.28045325779037 L 54 38.571463864549706 A 2.25 2.25 0 0 0 58.5 38.571463864549706 L 58.5 20.29323407339087 A 2.25 2.25 0 0 1 63 20.29323407339087 L 63 41.12756110415706 A 2.25 2.25 0 0 0 67.5 41.12756110415706 L 67.5 20.563607615784967 A 2.25 2.25 0 0 1 72 20.563607615784967 L 72 41.40238157981422 A 2.25 2.25 0 0 0 76.5 41.40238157981422 L 76.5 19.282890836023455 A 2.25 2.25 0 0 1 81 19.282890836023455 L 81 39.10731932274854 A 2.25 2.25 0 0 0 85.5 39.10731932274854 L 85.5 21.333371763620793 A 2.25 2.25 0 0 1 90 21.333371763620793 L 90 38.17479741748468 A 2.25 2.25 0 0 0 94.5 38.17479741748468 L 94.5 20.75838329270703 A 2.25 2.25 0 0 1 99 20.75838329270703 L 99 38.16279069767442 A 2.25 2.25 0 0 0 103.5 38.16279069767442 L 103.5 21.401854535871927 A 2.25 2.25 0 0 1 108 21.401854535871927 L 108 39.68008432703077 A 2.25 2.25 0 0 0 112.5 39.68008432703077 L 112.5 18.0866657882601 A 2.25 2.25 0 0 1 117 18.0866657882601 L 117 39.63339152776863 A 2.25 2.25 0 0 0 121.5 39.63339152776863 L 121.5 20.792179985506294 A 2.25 2.25 0 0 1 126 20.792179985506294 L 126 39.769912378944596 A 2.25 2.25 0 0 0 130.5 39.769912378944596 L 130.5 20.827755451610777 A 2.25 2.25 0 0 1 135 20.827755451610777 L 135 39.15267804203175 A 2.25 2.25 0 0 0 139.5 39.15267804203175 L 139.5 20.61786020159431 A 2.25 2.25 0 0 1 144 20.61786020159431 L 144 41.08709401146321 A 2.25 2.25 0 0 0 148.5 41.08709401146321 L 148.5 19.70446010936162 A 2.25 2.25 0 0 1 153 19.70446010936162 L 153 39.563574675538575 A 2.25 2.25 0 0 0 157.5 39.563574675538575 L 157.5 19.670663416562356 A 2.25 2.25 0 0 1 162 19.670663416562356 L 162 37.19780617959022 A 2.25 2.25 0 0 0 166.5 37.19780617959022 L 166.5 21.22842413861256 A 2.25 2.25 0 0 1 171 21.22842413861256 L 171 40.35735226299492 A 2.25 2.25 0 0 0 175.5 40.35735226299492 L 175.5 19.413630673957442 A 2.25 2.25 0 0 1 180 19.413630673957442 L 180 39.156680281968505 A 2.25 2.25 0 0 0 184.5 39.156680281968505 L 184.5 21.18262072600303 A 2.25 2.25 0 0 1 189 21.18262072600303 L 189 41.46108109888662 A 2.25 2.25 0 0 0 193.5 41.46108109888662 L 193.5 20.721029053297322 A 2.25 2.25 0 0 1 198 20.721029053297322 L 198 40.01049146847618 A 2.25 2.25 0 0 0 202.5 40.01049146847618 L 202.5 20.52803214968048 A 2.25 2.25 0 0 1 207 20.52803214968048 L 207 38.40826141379537 A 2.25 2.25 0 0 0 211.5 38.40826141379537 L 211.5 20.367497858883986 A 2.25 2.25 0 0 1 216 20.367497858883986 L 216 38.73955794189341 A 2.25 2.25 0 0 0 220.5 38.73955794189341 L 220.5 21.79540812965281 A 2.25 2.25 0 0 1 225 21.79540812965281 L 225 39.56401936886488 A 2.25 2.25 0 0 0 229.5 39.56401936886488 L 229.5 21.9701726068911 A 2.25 2.25 0 0 1 234 21.9701726068911 L 234 43.5 A 2.25 2.25 0 0 0 238.5 43.5 L 238.5 19.463436326503725 A 2.25 2.25 0 0 1 243 19.463436326503725 L 243 41.46908557876013 A 2.25 2.25 0 0 0 247.5 41.46908557876013 L 247.5 19.62930693721589 A 2.25 2.25 0 0 1 252 19.62930693721589 L 252 37.672293958758814 A 2.25 2.25 0 0 0 256.5 37.672293958758814 L 256.5 20.705464786876608 A 2.25 2.25 0 0 1 261 20.705464786876608 L 261 41.823506159826074 A 2.25 2.25 0 0 0 265.5 41.823506159826074 L 265.5 19.11524145200606 A 2.25 2.25 0 0 1 270 19.11524145200606 L 270 39.017046577508395 A 2.25 2.25 0 0 0 274.5 39.017046577508395 L 274.5 20.665887080835365 A 2.25 2.25 0 0 1 279 20.665887080835365 L 279 40.95857764016075 A 2.25 2.25 0 0 0 283.5 40.95857764016075 L 283.5 18.329913037749524 A 2.25 2.25 0 0 1 288 18.329913037749524 L 288 39.46529745042493 A 2.25 2.25 0 0 0 292.5 39.46529745042493 L 292.5 21.292904670926937 A 2.25 2.25 0 0 1 297 21.292904670926937 L 297 39.91532709664668 A 2.25 2.25 0 0 0 301.5 39.91532709664668 L 301.5 21.984402793332897 A 2.25 2.25 0 0 1 306 21.984402793332897 L 306 37.24805652546281 A 2.25 2.25 0 0 0 310.5 37.24805652546281 L 310.5 21.951050793859938 A 2.25 2.25 0 0 1 315 21.951050793859938 L 315 42.894327689571114 A 2.25 2.25 0 0 0 319.5 42.894327689571114 L 319.5 20.79484814546413 A 2.25 2.25 0 0 1 324 20.79484814546413 L 324 39.28830950655511 A 2.25 2.25 0 0 0 328.5 39.28830950655511 L 328.5 19.499011792608208 A 2.25 2.25 0 0 1 333 19.499011792608208 L 333 39.476859476908885 A 2.25 2.25 0 0 0 337.5 39.476859476908885 L 337.5 21.327590750378814 A 2.25 2.25 0 0 1 342 21.327590750378814 L 342 39.62938928783187 A 2.25 2.25 0 0 0 346.5 39.62938928783187 L 346.5 22.48557217207985 A 2.25 2.25 0 0 1 351 22.48557217207985 L 351 39.38792081164767 A 2.25 2.25 0 0 0 355.5 39.38792081164767 L 355.5 20.38617497858884 A 2.25 2.25 0 0 1 360 20.38617497858884 L 360 41.70744120166019 A 2.25 2.25 0 0 0 364.5 41.70744120166019 L 364.5 21.52903682719547 A 2.25 2.25 0 0 1 369 21.52903682719547 L 369 42.287765992489625 A 2.25 2.25 0 0 0 373.5 42.287765992489625 L 373.5 20.093122076553133 A 2.25 2.25 0 0 1 378 20.093122076553133 L 378 40.52989327360169 A 2.25 2.25 0 0 0 382.5 40.52989327360169 L 382.5 20.88556558403057 A 2.25 2.25 0 0 1 387 20.88556558403057 L 387 38.36468146781738 A 2.25 2.25 0 0 0 391.5 38.36468146781738 L 391.5 21.639320772119376 A 2.25 2.25 0 0 1 396 21.639320772119376 L 396 40.53745306014889 A 2.25 2.25 0 0 0 400.5 40.53745306014889 L 400.5 20.017524211081103 A 2.25 2.25 0 0 1 405 20.017524211081103 L 405 39.86774491073193 A 2.25 2.25 0 0 0 409.5 39.86774491073193 L 409.5 22.12581527109823 A 2.25 2.25 0 0 1 414 22.12581527109823 L 414 41.34101390078398 A 2.25 2.25 0 0 0 418.5 41.34101390078398 L 418.5 20.150932208972925 A 2.25 2.25 0 0 1 423 20.150932208972925 L 423 40.17324922590421 A 2.25 2.25 0 0 0 427.5 40.17324922590421 L 427.5 22.434432439554648 A 2.25 2.25 0 0 1 432 22.434432439554648 L 432 42.78982475788919 A 2.25 2.25 0 0 0 436.5 42.78982475788919 L 436.5 18.113792081164767 A 2.25 2.25 0 0 1 441 18.113792081164767 L 441 39.58269648856974 A 2.25 2.25 0 0 0 445.5 39.58269648856974 L 445.5 20.907355557019567 A 2.25 2.25 0 0 1 450 20.907355557019567 L 450 38.47674418604651 A 2.25 2.25 0 0 0 454.5 38.47674418604651 L 454.5 19.196620330720073 A 2.25 2.25 0 0 1 459 19.196620330720073 L 459 39.723664273008765 A 2.25 2.25 0 0 0 463.5 39.723664273008765 L 463.5 20.20607418143488 A 2.25 2.25 0 0 1 468 20.20607418143488 L 468 41.34412675406812 A 2.25 2.25 0 0 0 472.5 41.34412675406812 L 472.5 20.058880690427564 A 2.25 2.25 0 0 1 477 20.058880690427564 L 477 40.14523354634693 A 2.25 2.25 0 0 0 481.5 40.14523354634693 L 481.5 22.182736016865405 A 2.25 2.25 0 0 1 486 22.182736016865405 L 486 39.776138085512876 A 2.25 2.25 0 0 0 490.5 39.776138085512876 L 490.5 21.966615060280652 A 2.25 2.25 0 0 1 495 21.966615060280652 L 495 40.25907503788128 A 2.25 2.25 0 0 0 499.5 40.25907503788128 L 499.5 23.037436590025692 A 2.25 2.25 0 0 1 504 23.037436590025692 L 504 40.57391791290598 A 2.25 2.25 0 0 0 508.5 40.57391791290598 L 508.5 22.549608011067924 A 2.25 2.25 0 0 1 513 22.549608011067924 L 513 40.810050069174515 A 2.25 2.25 0 0 0 517.5 40.810050069174515 L 517.5 21.02164174188023 A 2.25 2.25 0 0 1 522 21.02164174188023 L 522 40.33600698333223 A 2.25 2.25 0 0 0 526.5 40.33600698333223 L 526.5 19.717356215824495 A 2.25 2.25 0 0 1 531 19.717356215824495 L 531 40.670416364714406 A 2.25 2.25 0 0 0 535.5 40.670416364714406 L 535.5 20.999851768891233 A 2.25 2.25 0 0 1 540 20.999851768891233 L 540 40.158574346136106 A 2.25 2.25 0 0 0 544.5 40.158574346136106 L 544.5 20.859773371104815 A 2.25 2.25 0 0 1 549 20.859773371104815 L 549 38.727106528756835 A 2.25 2.25 0 0 0 553.5 38.727106528756835 L 553.5 21.160386059687724 A 2.25 2.25 0 0 1 558 21.160386059687724 L 558 30 A 2.25 2.25 0 0 0 562.5 30 A 2.25 2.25 0 0 1 567 30" fill="none" stroke="#e2e8f0" stroke-width="2" /><path class="podify-sp-progress-path" d="M 0 30 L 0 30 A 2.25 2.25 0 0 0 4.5 30 A 2.25 2.25 0 0 1 9 30 L 9 37.14888991369655 A 2.25 2.25 0 0 0 13.5 37.14888991369655 L 13.5 24.81576520192371 A 2.25 2.25 0 0 1 18 24.81576520192371 L 18 40.138563146452334 A 2.25 2.25 0 0 0 22.5 40.138563146452334 L 22.5 19.60218064431122 A 2.25 2.25 0 0 1 27 19.60218064431122 L 27 37.719431451347255 A 2.25 2.25 0 0 0 31.5 37.719431451347255 L 31.5 20.517359509849136 A 2.25 2.25 0 0 1 36 20.517359509849136 L 36 37.415261216153894 A 2.25 2.25 0 0 0 40.5 37.415261216153894 L 40.5 21.577953093089135 A 2.25 2.25 0 0 1 45 21.577953093089135 L 45 37.80570195665064 A 2.25 2.25 0 0 0 49.5 37.80570195665064 L 49.5 21.28045325779037 A 2.25 2.25 0 0 1 54 21.28045325779037 L 54 38.571463864549706 A 2.25 2.25 0 0 0 58.5 38.571463864549706 L 58.5 20.29323407339087 A 2.25 2.25 0 0 1 63 20.29323407339087 L 63 41.12756110415706 A 2.25 2.25 0 0 0 67.5 41.12756110415706 L 67.5 20.563607615784967 A 2.25 2.25 0 0 1 72 20.563607615784967 L 72 41.40238157981422 A 2.25 2.25 0 0 0 76.5 41.40238157981422 L 76.5 19.282890836023455 A 2.25 2.25 0 0 1 81 19.282890836023455 L 81 39.10731932274854 A 2.25 2.25 0 0 0 85.5 39.10731932274854 L 85.5 21.333371763620793 A 2.25 2.25 0 0 1 90 21.333371763620793 L 90 38.17479741748468 A 2.25 2.25 0 0 0 94.5 38.17479741748468 L 94.5 20.75838329270703 A 2.25 2.25 0 0 1 99 20.75838329270703 L 99 38.16279069767442 A 2.25 2.25 0 0 0 103.5 38.16279069767442 L 103.5 21.401854535871927 A 2.25 2.25 0 0 1 108 21.401854535871927 L 108 39.68008432703077 A 2.25 2.25 0 0 0 112.5 39.68008432703077 L 112.5 18.0866657882601 A 2.25 2.25 0 0 1 117 18.0866657882601 L 117 39.63339152776863 A 2.25 2.25 0 0 0 121.5 39.63339152776863 L 121.5 20.792179985506294 A 2.25 2.25 0 0 1 126 20.792179985506294 L 126 39.769912378944596 A 2.25 2.25 0 0 0 130.5 39.769912378944596 L 130.5 20.827755451610777 A 2.25 2.25 0 0 1 135 20.827755451610777 L 135 39.15267804203175 A 2.25 2.25 0 0 0 139.5 39.15267804203175 L 139.5 20.61786020159431 A 2.25 2.25 0 0 1 144 20.61786020159431 L 144 41.08709401146321 A 2.25 2.25 0 0 0 148.5 41.08709401146321 L 148.5 19.70446010936162 A 2.25 2.25 0 0 1 153 19.70446010936162 L 153 39.563574675538575 A 2.25 2.25 0 0 0 157.5 39.563574675538575 L 157.5 19.670663416562356 A 2.25 2.25 0 0 1 162 19.670663416562356 L 162 37.19780617959022 A 2.25 2.25 0 0 0 166.5 37.19780617959022 L 166.5 21.22842413861256 A 2.25 2.25 0 0 1 171 21.22842413861256 L 171 40.35735226299492 A 2.25 2.25 0 0 0 175.5 40.35735226299492 L 175.5 19.413630673957442 A 2.25 2.25 0 0 1 180 19.413630673957442 L 180 39.156680281968505 A 2.25 2.25 0 0 0 184.5 39.156680281968505 L 184.5 21.18262072600303 A 2.25 2.25 0 0 1 189 21.18262072600303 L 189 41.46108109888662 A 2.25 2.25 0 0 0 193.5 41.46108109888662 L 193.5 20.721029053297322 A 2.25 2.25 0 0 1 198 20.721029053297322 L 198 40.01049146847618 A 2.25 2.25 0 0 0 202.5 40.01049146847618 L 202.5 20.52803214968048 A 2.25 2.25 0 0 1 207 20.52803214968048 L 207 38.40826141379537 A 2.25 2.25 0 0 0 211.5 38.40826141379537 L 211.5 20.367497858883986 A 2.25 2.25 0 0 1 216 20.367497858883986 L 216 38.73955794189341 A 2.25 2.25 0 0 0 220.5 38.73955794189341 L 220.5 21.79540812965281 A 2.25 2.25 0 0 1 225 21.79540812965281 L 225 39.56401936886488 A 2.25 2.25 0 0 0 229.5 39.56401936886488 L 229.5 21.9701726068911 A 2.25 2.25 0 0 1 234 21.9701726068911 L 234 43.5 A 2.25 2.25 0 0 0 238.5 43.5 L 238.5 19.463436326503725 A 2.25 2.25 0 0 1 243 19.463436326503725 L 243 41.46908557876013 A 2.25 2.25 0 0 0 247.5 41.46908557876013 L 247.5 19.62930693721589 A 2.25 2.25 0 0 1 252 19.62930693721589 L 252 37.672293958758814 A 2.25 2.25 0 0 0 256.5 37.672293958758814 L 256.5 20.705464786876608 A 2.25 2.25 0 0 1 261 20.705464786876608 L 261 41.823506159826074 A 2.25 2.25 0 0 0 265.5 41.823506159826074 L 265.5 19.11524145200606 A 2.25 2.25 0 0 1 270 19.11524145200606 L 270 39.017046577508395 A 2.25 2.25 0 0 0 274.5 39.017046577508395 L 274.5 20.665887080835365 A 2.25 2.25 0 0 1 279 20.665887080835365 L 279 40.95857764016075 A 2.25 2.25 0 0 0 283.5 40.95857764016075 L 283.5 18.329913037749524 A 2.25 2.25 0 0 1 288 18.329913037749524 L 288 39.46529745042493 A 2.25 2.25 0 0 0 292.5 39.46529745042493 L 292.5 21.292904670926937 A 2.25 2.25 0 0 1 297 21.292904670926937 L 297 39.91532709664668 A 2.25 2.25 0 0 0 301.5 39.91532709664668 L 301.5 21.984402793332897 A 2.25 2.25 0 0 1 306 21.984402793332897 L 306 37.24805652546281 A 2.25 2.25 0 0 0 310.5 37.24805652546281 L 310.5 21.951050793859938 A 2.25 2.25 0 0 1 315 21.951050793859938 L 315 42.894327689571114 A 2.25 2.25 0 0 0 319.5 42.894327689571114 L 319.5 20.79484814546413 A 2.25 2.25 0 0 1 324 20.79484814546413 L 324 39.28830950655511 A 2.25 2.25 0 0 0 328.5 39.28830950655511 L 328.5 19.499011792608208 A 2.25 2.25 0 0 1 333 19.499011792608208 L 333 39.476859476908885 A 2.25 2.25 0 0 0 337.5 39.476859476908885 L 337.5 21.327590750378814 A 2.25 2.25 0 0 1 342 21.327590750378814 L 342 39.62938928783187 A 2.25 2.25 0 0 0 346.5 39.62938928783187 L 346.5 22.48557217207985 A 2.25 2.25 0 0 1 351 22.48557217207985 L 351 39.38792081164767 A 2.25 2.25 0 0 0 355.5 39.38792081164767 L 355.5 20.38617497858884 A 2.25 2.25 0 0 1 360 20.38617497858884 L 360 41.70744120166019 A 2.25 2.25 0 0 0 364.5 41.70744120166019 L 364.5 21.52903682719547 A 2.25 2.25 0 0 1 369 21.52903682719547 L 369 42.287765992489625 A 2.25 2.25 0 0 0 373.5 42.287765992489625 L 373.5 20.093122076553133 A 2.25 2.25 0 0 1 378 20.093122076553133 L 378 40.52989327360169 A 2.25 2.25 0 0 0 382.5 40.52989327360169 L 382.5 20.88556558403057 A 2.25 2.25 0 0 1 387 20.88556558403057 L 387 38.36468146781738 A 2.25 2.25 0 0 0 391.5 38.36468146781738 L 391.5 21.639320772119376 A 2.25 2.25 0 0 1 396 21.639320772119376 L 396 40.53745306014889 A 2.25 2.25 0 0 0 400.5 40.53745306014889 L 400.5 20.017524211081103 A 2.25 2.25 0 0 1 405 20.017524211081103 L 405 39.86774491073193 A 2.25 2.25 0 0 0 409.5 39.86774491073193 L 409.5 22.12581527109823 A 2.25 2.25 0 0 1 414 22.12581527109823 L 414 41.34101390078398 A 2.25 2.25 0 0 0 418.5 41.34101390078398 L 418.5 20.150932208972925 A 2.25 2.25 0 0 1 423 20.150932208972925 L 423 40.17324922590421 A 2.25 2.25 0 0 0 427.5 40.17324922590421 L 427.5 22.434432439554648 A 2.25 2.25 0 0 1 432 22.434432439554648 L 432 42.78982475788919 A 2.25 2.25 0 0 0 436.5 42.78982475788919 L 436.5 18.113792081164767 A 2.25 2.25 0 0 1 441 18.113792081164767 L 441 39.58269648856974 A 2.25 2.25 0 0 0 445.5 39.58269648856974 L 445.5 20.907355557019567 A 2.25 2.25 0 0 1 450 20.907355557019567 L 450 38.47674418604651 A 2.25 2.25 0 0 0 454.5 38.47674418604651 L 454.5 19.196620330720073 A 2.25 2.25 0 0 1 459 19.196620330720073 L 459 39.723664273008765 A 2.25 2.25 0 0 0 463.5 39.723664273008765 L 463.5 20.20607418143488 A 2.25 2.25 0 0 1 468 20.20607418143488 L 468 41.34412675406812 A 2.25 2.25 0 0 0 472.5 41.34412675406812 L 472.5 20.058880690427564 A 2.25 2.25 0 0 1 477 20.058880690427564 L 477 40.14523354634693 A 2.25 2.25 0 0 0 481.5 40.14523354634693 L 481.5 22.182736016865405 A 2.25 2.25 0 0 1 486 22.182736016865405 L 486 39.776138085512876 A 2.25 2.25 0 0 0 490.5 39.776138085512876 L 490.5 21.966615060280652 A 2.25 2.25 0 0 1 495 21.966615060280652 L 495 40.25907503788128 A 2.25 2.25 0 0 0 499.5 40.25907503788128 L 499.5 23.037436590025692 A 2.25 2.25 0 0 1 504 23.037436590025692 L 504 40.57391791290598 A 2.25 2.25 0 0 0 508.5 40.57391791290598 L 508.5 22.549608011067924 A 2.25 2.25 0 0 1 513 22.549608011067924 L 513 40.810050069174515 A 2.25 2.25 0 0 0 517.5 40.810050069174515 L 517.5 21.02164174188023 A 2.25 2.25 0 0 1 522 21.02164174188023 L 522 40.33600698333223 A 2.25 2.25 0 0 0 526.5 40.33600698333223 L 526.5 19.717356215824495 A 2.25 2.25 0 0 1 531 19.717356215824495 L 531 40.670416364714406 A 2.25 2.25 0 0 0 535.5 40.670416364714406 L 535.5 20.999851768891233 A 2.25 2.25 0 0 1 540 20.999851768891233 L 540 40.158574346136106 A 2.25 2.25 0 0 0 544.5 40.158574346136106 L 544.5 20.859773371104815 A 2.25 2.25 0 0 1 549 20.859773371104815 L 549 38.727106528756835 A 2.25 2.25 0 0 0 553.5 38.727106528756835 L 553.5 21.160386059687724 A 2.25 2.25 0 0 1 558 21.160386059687724 L 558 30 A 2.25 2.25 0 0 0 562.5 30 A 2.25 2.25 0 0 1 567 30" fill="none" stroke="#0b5bd3" stroke-width="2" style="stroke-dasharray: 10000; stroke-dashoffset: 10000;" /><rect class="podify-sp-click-area" width="100%" height="100%" fill="transparent" style="cursor:pointer;" /></svg></div>';
+        $player_html .= '</div><div class="podify-sp-time">';
         $player_html .= '<span class="podify-sp-current">0:00</span>';
         $player_html .= '<span class="podify-sp-separator">/</span>';
         $player_html .= '<span class="podify-sp-duration">'.esc_html($dur_fmt ?: '0:00').'</span>';
@@ -80,7 +118,7 @@ class FrontendInit {
         
         $player_html .= '</div>';
 
-        return $player_html . make_clickable($content);
+        return $player_html;
     }
     private static function duration_seconds($d) {
         $s = trim((string)$d);
@@ -220,10 +258,15 @@ class FrontendInit {
             if (!empty($e['post_id'])) {
                 $pid = intval($e['post_id']);
                 if ($pid > 0) {
-                    $maudio = get_post_meta($pid, '_podify_audio_url', true);
-                    if (!empty($maudio) && wp_http_validate_url($maudio)) { $audio = esc_url($maudio); }
                     $mimage = get_post_meta($pid, '_podify_episode_image', true);
-                    if (!empty($mimage) && wp_http_validate_url($mimage)) { $img = esc_url($mimage); }
+                    // $maudio = get_post_meta($pid, '_podify_audio_url', true);
+                    // if (!empty($maudio) && wp_http_validate_url($maudio)) { $audio = esc_url($maudio); }
+                    if (has_post_thumbnail($pid)) {
+                        $thumb = get_the_post_thumbnail_url($pid, 'large');
+                        if ($thumb) { $img = esc_url($thumb); }
+                    } elseif (!empty($mimage) && wp_http_validate_url($mimage)) { 
+                        $img = esc_url($mimage); 
+                    }
                     $mdur = get_post_meta($pid, '_podify_duration', true);
                     if (!empty($mdur)) { 
                         $duration = esc_html(self::format_duration($mdur)); 
@@ -307,11 +350,17 @@ class FrontendInit {
             $cats = \PodifyPodcast\Core\Database::get_episode_categories(intval($e['id']));
             $cats_html = '';
             if (is_array($cats) && !empty($cats)) {
-                $cats_html .= '<div class="podify-episode-categories">';
+                $has_cats = false;
+                $temp_html = '<div class="podify-episode-categories">';
                 foreach ($cats as $cat) {
-                    $cats_html .= '<span class="podify-category-pill">'.esc_html($cat['name']).'</span>';
+                    if (strcasecmp($cat['name'], 'Uncategorized') === 0) continue;
+                    $temp_html .= '<span class="podify-category-pill">'.esc_html($cat['name']).'</span>';
+                    $has_cats = true;
                 }
-                $cats_html .= '</div>';
+                $temp_html .= '</div>';
+                if ($has_cats) {
+                    $cats_html = $temp_html;
+                }
             }
 
             // Title (Linked in both layouts)
@@ -390,7 +439,7 @@ class FrontendInit {
         $html .= 'console.log("Podify Inline JS Init: EP_URL=", EP_URL, "LAYOUT=", LAYOUT);';
         
         // Helper: Ensure aspect ratio
-        $html .= 'function setCardMediaAspect(root){var imgs=(root?root.querySelectorAll(".podify-episode-media img"):document.querySelectorAll(".podify-episode-media img"));imgs.forEach(function(img){function apply(){var w=img.naturalWidth||0,h=img.naturalHeight||0;if(w>0&&h>0){var p=img.parentElement;if(p){p.style.aspectRatio=w+" / "+h;img.style.width="100%";img.style.height="100%";img.style.objectFit="contain";}}}if(img.complete){apply();}else{img.addEventListener("load",apply,{once:true});}});}setCardMediaAspect();';
+        $html .= 'function setCardMediaAspect(root){var imgs=(root?root.querySelectorAll(".podify-episode-media img"):document.querySelectorAll(".podify-episode-media img"));imgs.forEach(function(img){function apply(){var w=img.naturalWidth||0,h=img.naturalHeight||0;if(w>0&&h>0){var p=img.parentElement;if(p){img.style.width="100%";img.style.height="100%";img.style.objectFit="cover";}}}if(img.complete){apply();}else{img.addEventListener("load",apply,{once:true});}});}setCardMediaAspect();';
         
         // Helper: Ensure Layout Classes and Links (Fixes any JS-rendered inconsistencies)
         $html .= 'function ensureLayoutAndLinks(root){';
@@ -418,7 +467,7 @@ class FrontendInit {
         $html .= '}/* ensureLayoutAndLinks(); */';
         
         // Play Button Click Handler
-        $html .= 'document.addEventListener("click",function(e){var btn=e.target.closest(".podify-play-action-btn");if(!btn)return;var card=btn.closest(".podify-episode-card");if(!card)return;var src=card.getAttribute("data-audio");if(!src)return;e.preventDefault();try{var player=document.getElementById("podify-sticky-player");var stickyAudio=document.getElementById("podify-sticky-audio");var titleEl=document.getElementById("podify-sticky-title");var imgEl=document.getElementById("podify-sticky-img");var playBtn=document.getElementById("podify-sticky-play");var volBtn=document.getElementById("podify-sticky-volume");if(stickyAudio&&player){stickyAudio.src=src;stickyAudio.setAttribute("data-duration",card.getAttribute("data-duration")||"");stickyAudio.setAttribute("data-duration-seconds",card.getAttribute("data-duration-seconds")||"");document.body.classList.add("podify-player-active");player.style.setProperty("display","block","important");if(titleEl)titleEl.textContent=card.getAttribute("data-title")||titleEl.textContent;if(imgEl)imgEl.src=card.getAttribute("data-image")||imgEl.src;if(playBtn)playBtn.innerHTML=\'<svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><circle cx="12" cy="12" r="12" fill="white"/><path d="M9 8h2v8H9V8zm4 0h2v8h-2V8z" fill="black"/></svg>\';try{stickyAudio.load()}catch(_e){}document.querySelectorAll(".podify-episode-card.podify-playing").forEach(function(x){x.classList.remove("podify-playing")});card.classList.add("podify-playing");stickyAudio.play().catch(function(err){console.error("Podify: Sticky play failed from overlay click",err)})}}catch(err){console.error("Podify: Overlay click error",err)}});';
+        $html .= 'document.addEventListener("click",function(e){var btn=e.target.closest(".podify-play-action-btn");if(!btn)return;console.log("Podify List Player Play Clicked");var card=btn.closest(".podify-episode-card");if(!card)return;var src=card.getAttribute("data-audio");if(!src)return;e.preventDefault();try{var player=document.getElementById("podify-sticky-player");var stickyAudio=document.getElementById("podify-sticky-audio");var titleEl=document.getElementById("podify-sticky-title");var imgEl=document.getElementById("podify-sticky-img");var playBtn=document.getElementById("podify-sticky-play");var volBtn=document.getElementById("podify-sticky-volume");if(stickyAudio&&player){stickyAudio.src=src;stickyAudio.setAttribute("data-duration",card.getAttribute("data-duration")||"");stickyAudio.setAttribute("data-duration-seconds",card.getAttribute("data-duration-seconds")||"");document.body.classList.add("podify-player-active");player.style.setProperty("display","block","important");if(titleEl)titleEl.textContent=card.getAttribute("data-title")||titleEl.textContent;if(imgEl)imgEl.src=card.getAttribute("data-image")||imgEl.src;if(playBtn)playBtn.innerHTML=\'<svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><circle cx="12" cy="12" r="12" fill="white"/><path d="M9 8h2v8H9V8zm4 0h2v8h-2V8z" fill="black"/></svg>\';try{stickyAudio.load()}catch(_e){}document.querySelectorAll(".podify-episode-card.podify-playing").forEach(function(x){x.classList.remove("podify-playing")});card.classList.add("podify-playing");stickyAudio.play().catch(function(err){console.error("Podify: Sticky play failed from overlay click",err)})}}catch(err){console.error("Podify: Overlay click error",err)}});';
         
         // Duration Formatter
         $html .= 'function fmtDur(s){if(!s)return"";var sec=0;if(/^[0-9]+$/.test(s)){sec=parseInt(s,10)}else{var parts=s.split(":").map(function(x){return parseInt(x,10)||0});for(var i=0;i<parts.length;i++){sec=sec*60+parts[i]}}var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),se=sec%60;return h>0?(h+":"+(m<10?"0":"")+m+":"+(se<10?"0":"")+se):(m+":"+(se<10?"0":"")+se)}';
@@ -447,10 +496,12 @@ class FrontendInit {
         $html .= '      var mp=[]; if(dtS)mp.push(dtS); if(tg)mp.push(tg); var ml=mp.join(" · ");';
         $html .= '      var cc=isModern?"podify-episode-card podify-modern":"podify-episode-card podify-row";';
         $html .= '      var da=" data-title=\""+t.replace(/"/g,"&quot;")+"\""; if(au)da+=" data-audio=\""+au+"\""; if(im)da+=" data-image=\""+im+"\""; da+=" data-duration=\""+dur+"\" data-duration-seconds=\""+dSec+"\"";';
-        $html .= '      var ct=ei.categories||[]; var cth=""; if(ct.length>0){cth+="<div class=\"podify-episode-categories\">";ct.forEach(function(c){cth+="<span class=\"podify-category-pill\">"+(c.name||"")+"</span>";});cth+="</div>";}';
+        $html .= '      var ct=ei.categories||[]; var cth=""; 
+      ct=ct.filter(function(c){return c.name&&c.name.toLowerCase()!=="uncategorized";});
+      if(ct.length>0){cth+="<div class=\"podify-episode-categories\">";ct.forEach(function(c){cth+="<span class=\"podify-category-pill\">"+(c.name||"")+"</span>";});cth+="</div>";}';
         $html .= '      h+="<div class=\""+cc+"\""+da+">";';
         $html .= '      if(isModern){';
-        $html .= '        h+="<div class=\"podify-episode-media\">"+(im?"<img src=\""+im+"\" alt=\""+t.replace(/"/g,"&quot;")+"\" loading=\"lazy\">":"<div class=\"podify-episode-placeholder\"></div>")+"</div>";';
+        $html .= '        h+="<div class=\"podify-episode-media\">"+(im?"<img src=\""+im+"\" alt=\""+t.replace(/"/g,"&quot;")+"\" loading=\"lazy\" style=\"width:100%;height:100%;object-fit:cover;\">":"<div class=\"podify-episode-placeholder\"></div>")+"</div>";';
         $html .= '        h+="<div class=\"podify-episode-body\"><div class=\"podify-episode-top\">"+cth+"<h3 class=\"podify-episode-title\"><a href=\""+pm+"\" class=\"podify-episode-link\">"+t+"</a></h3></div>";';
         $html .= '        if(de)h+="<div class=\"podify-episode-desc podify-clamp-2\">"+de+"</div>";';
         $html .= '        if(ml)h+="<div class=\"podify-episode-meta\">"+ml+"</div>";';
@@ -459,7 +510,7 @@ class FrontendInit {
         $html .= '        if(dur && STICKY_ENABLED)h+="<span class=\"podify-episode-duration\">"+dur+"</span>";';
         $html .= '        h+="</div></div>";';
         $html .= '      }else{';
-        $html .= '        h+="<div class=\"podify-episode-media\">"+(im?"<img src=\""+im+"\" alt=\""+t.replace(/"/g,"&quot;")+"\" loading=\"lazy\">":"<div class=\"podify-episode-placeholder\"></div>")+"</div>";';
+        $html .= '        h+="<div class=\"podify-episode-media\">"+(im?"<img src=\""+im+"\" alt=\""+t.replace(/"/g,"&quot;")+"\" loading=\"lazy\" style=\"width:100%;height:100%;object-fit:cover;\">":"<div class=\"podify-episode-placeholder\"></div>")+"</div>";';
         $html .= '        h+="<div class=\"podify-episode-body\"><div class=\"podify-episode-top\"><h3 class=\"podify-episode-title\"><a href=\""+pm+"\" class=\"podify-episode-link\">"+t+"</a></h3></div>"+cth;';
         $html .= '        if(de)h+="<div class=\"podify-episode-desc podify-clamp-2\">"+de+"</div>";';
         $html .= '        h+="<a class=\"podify-read-more\" href=\""+pm+"\">Read more <i class=\"fa fa-angle-right\"></i></a>";';
@@ -510,8 +561,13 @@ class FrontendInit {
                 if ($pid > 0) {
                     $maudio = get_post_meta($pid, '_podify_audio_url', true);
                     $mimage = get_post_meta($pid, '_podify_episode_image', true);
-                    if (!empty($maudio) && wp_http_validate_url($maudio)) { $ep_audio = esc_url($maudio); }
-                    if (!empty($mimage) && wp_http_validate_url($mimage)) { $ep_img = esc_url($mimage); }
+                    // if (!empty($maudio) && wp_http_validate_url($maudio)) { $ep_audio = esc_url($maudio); }
+                    if (has_post_thumbnail($pid)) {
+                        $thumb = get_the_post_thumbnail_url($pid, 'large');
+                        if ($thumb) { $ep_img = esc_url($thumb); }
+                    } elseif (!empty($mimage) && wp_http_validate_url($mimage)) { 
+                        $ep_img = esc_url($mimage); 
+                    }
                 }
             }
             $ep_sub = '';
@@ -522,10 +578,7 @@ class FrontendInit {
             $html .= '<div id="podify-sticky-player" class="podify-sticky-player '.$posClass.'">';
             
             // Progress bar (top)
-            $html .= '<div class="podify-sticky-progress-container">';
-            $html .= '<input type="range" id="podify-sticky-range" min="0" max="100" value="0">';
-            $html .= '</div>';
-
+            $html .= '<div class="podify-sticky-progress-container"><svg id="podify-sticky-svg" viewBox="0 0 567 45" preserveAspectRatio="none" style="cursor:pointer;display:block;width:100%;height:45px;"><path d="M 0 30 L 0 30 A 2.25 2.25 0 0 0 4.5 30 A 2.25 2.25 0 0 1 9 30 L 9 37.14888991369655 A 2.25 2.25 0 0 0 13.5 37.14888991369655 L 13.5 24.81576520192371 A 2.25 2.25 0 0 1 18 24.81576520192371 L 18 40.138563146452334 A 2.25 2.25 0 0 0 22.5 40.138563146452334 L 22.5 19.60218064431122 A 2.25 2.25 0 0 1 27 19.60218064431122 L 27 37.719431451347255 A 2.25 2.25 0 0 0 31.5 37.719431451347255 L 31.5 20.517359509849136 A 2.25 2.25 0 0 1 36 20.517359509849136 L 36 37.415261216153894 A 2.25 2.25 0 0 0 40.5 37.415261216153894 L 40.5 21.577953093089135 A 2.25 2.25 0 0 1 45 21.577953093089135 L 45 37.80570195665064 A 2.25 2.25 0 0 0 49.5 37.80570195665064 L 49.5 21.28045325779037 A 2.25 2.25 0 0 1 54 21.28045325779037 L 54 38.571463864549706 A 2.25 2.25 0 0 0 58.5 38.571463864549706 L 58.5 20.29323407339087 A 2.25 2.25 0 0 1 63 20.29323407339087 L 63 41.12756110415706 A 2.25 2.25 0 0 0 67.5 41.12756110415706 L 67.5 20.563607615784967 A 2.25 2.25 0 0 1 72 20.563607615784967 L 72 41.40238157981422 A 2.25 2.25 0 0 0 76.5 41.40238157981422 L 76.5 19.282890836023455 A 2.25 2.25 0 0 1 81 19.282890836023455 L 81 39.10731932274854 A 2.25 2.25 0 0 0 85.5 39.10731932274854 L 85.5 21.333371763620793 A 2.25 2.25 0 0 1 90 21.333371763620793 L 90 38.17479741748468 A 2.25 2.25 0 0 0 94.5 38.17479741748468 L 94.5 20.75838329270703 A 2.25 2.25 0 0 1 99 20.75838329270703 L 99 38.16279069767442 A 2.25 2.25 0 0 0 103.5 38.16279069767442 L 103.5 21.401854535871927 A 2.25 2.25 0 0 1 108 21.401854535871927 L 108 39.68008432703077 A 2.25 2.25 0 0 0 112.5 39.68008432703077 L 112.5 18.0866657882601 A 2.25 2.25 0 0 1 117 18.0866657882601 L 117 39.63339152776863 A 2.25 2.25 0 0 0 121.5 39.63339152776863 L 121.5 20.792179985506294 A 2.25 2.25 0 0 1 126 20.792179985506294 L 126 39.769912378944596 A 2.25 2.25 0 0 0 130.5 39.769912378944596 L 130.5 20.827755451610777 A 2.25 2.25 0 0 1 135 20.827755451610777 L 135 39.15267804203175 A 2.25 2.25 0 0 0 139.5 39.15267804203175 L 139.5 20.61786020159431 A 2.25 2.25 0 0 1 144 20.61786020159431 L 144 41.08709401146321 A 2.25 2.25 0 0 0 148.5 41.08709401146321 L 148.5 19.70446010936162 A 2.25 2.25 0 0 1 153 19.70446010936162 L 153 39.563574675538575 A 2.25 2.25 0 0 0 157.5 39.563574675538575 L 157.5 19.670663416562356 A 2.25 2.25 0 0 1 162 19.670663416562356 L 162 37.19780617959022 A 2.25 2.25 0 0 0 166.5 37.19780617959022 L 166.5 21.22842413861256 A 2.25 2.25 0 0 1 171 21.22842413861256 L 171 40.35735226299492 A 2.25 2.25 0 0 0 175.5 40.35735226299492 L 175.5 19.413630673957442 A 2.25 2.25 0 0 1 180 19.413630673957442 L 180 39.156680281968505 A 2.25 2.25 0 0 0 184.5 39.156680281968505 L 184.5 21.18262072600303 A 2.25 2.25 0 0 1 189 21.18262072600303 L 189 41.46108109888662 A 2.25 2.25 0 0 0 193.5 41.46108109888662 L 193.5 20.721029053297322 A 2.25 2.25 0 0 1 198 20.721029053297322 L 198 40.01049146847618 A 2.25 2.25 0 0 0 202.5 40.01049146847618 L 202.5 20.52803214968048 A 2.25 2.25 0 0 1 207 20.52803214968048 L 207 38.40826141379537 A 2.25 2.25 0 0 0 211.5 38.40826141379537 L 211.5 20.367497858883986 A 2.25 2.25 0 0 1 216 20.367497858883986 L 216 38.73955794189341 A 2.25 2.25 0 0 0 220.5 38.73955794189341 L 220.5 21.79540812965281 A 2.25 2.25 0 0 1 225 21.79540812965281 L 225 39.56401936886488 A 2.25 2.25 0 0 0 229.5 39.56401936886488 L 229.5 21.9701726068911 A 2.25 2.25 0 0 1 234 21.9701726068911 L 234 43.5 A 2.25 2.25 0 0 0 238.5 43.5 L 238.5 19.463436326503725 A 2.25 2.25 0 0 1 243 19.463436326503725 L 243 41.46908557876013 A 2.25 2.25 0 0 0 247.5 41.46908557876013 L 247.5 19.62930693721589 A 2.25 2.25 0 0 1 252 19.62930693721589 L 252 37.672293958758814 A 2.25 2.25 0 0 0 256.5 37.672293958758814 L 256.5 20.705464786876608 A 2.25 2.25 0 0 1 261 20.705464786876608 L 261 41.823506159826074 A 2.25 2.25 0 0 0 265.5 41.823506159826074 L 265.5 19.11524145200606 A 2.25 2.25 0 0 1 270 19.11524145200606 L 270 39.017046577508395 A 2.25 2.25 0 0 0 274.5 39.017046577508395 L 274.5 20.665887080835365 A 2.25 2.25 0 0 1 279 20.665887080835365 L 279 40.95857764016075 A 2.25 2.25 0 0 0 283.5 40.95857764016075 L 283.5 18.329913037749524 A 2.25 2.25 0 0 1 288 18.329913037749524 L 288 39.46529745042493 A 2.25 2.25 0 0 0 292.5 39.46529745042493 L 292.5 21.292904670926937 A 2.25 2.25 0 0 1 297 21.292904670926937 L 297 39.91532709664668 A 2.25 2.25 0 0 0 301.5 39.91532709664668 L 301.5 21.984402793332897 A 2.25 2.25 0 0 1 306 21.984402793332897 L 306 37.24805652546281 A 2.25 2.25 0 0 0 310.5 37.24805652546281 L 310.5 21.951050793859938 A 2.25 2.25 0 0 1 315 21.951050793859938 L 315 42.894327689571114 A 2.25 2.25 0 0 0 319.5 42.894327689571114 L 319.5 20.79484814546413 A 2.25 2.25 0 0 1 324 20.79484814546413 L 324 39.28830950655511 A 2.25 2.25 0 0 0 328.5 39.28830950655511 L 328.5 19.499011792608208 A 2.25 2.25 0 0 1 333 19.499011792608208 L 333 39.476859476908885 A 2.25 2.25 0 0 0 337.5 39.476859476908885 L 337.5 21.327590750378814 A 2.25 2.25 0 0 1 342 21.327590750378814 L 342 39.62938928783187 A 2.25 2.25 0 0 0 346.5 39.62938928783187 L 346.5 22.48557217207985 A 2.25 2.25 0 0 1 351 22.48557217207985 L 351 39.38792081164767 A 2.25 2.25 0 0 0 355.5 39.38792081164767 L 355.5 20.38617497858884 A 2.25 2.25 0 0 1 360 20.38617497858884 L 360 41.70744120166019 A 2.25 2.25 0 0 0 364.5 41.70744120166019 L 364.5 21.52903682719547 A 2.25 2.25 0 0 1 369 21.52903682719547 L 369 42.287765992489625 A 2.25 2.25 0 0 0 373.5 42.287765992489625 L 373.5 20.093122076553133 A 2.25 2.25 0 0 1 378 20.093122076553133 L 378 40.52989327360169 A 2.25 2.25 0 0 0 382.5 40.52989327360169 L 382.5 20.88556558403057 A 2.25 2.25 0 0 1 387 20.88556558403057 L 387 38.36468146781738 A 2.25 2.25 0 0 0 391.5 38.36468146781738 L 391.5 21.639320772119376 A 2.25 2.25 0 0 1 396 21.639320772119376 L 396 40.53745306014889 A 2.25 2.25 0 0 0 400.5 40.53745306014889 L 400.5 20.017524211081103 A 2.25 2.25 0 0 1 405 20.017524211081103 L 405 39.86774491073193 A 2.25 2.25 0 0 0 409.5 39.86774491073193 L 409.5 22.12581527109823 A 2.25 2.25 0 0 1 414 22.12581527109823 L 414 41.34101390078398 A 2.25 2.25 0 0 0 418.5 41.34101390078398 L 418.5 20.150932208972925 A 2.25 2.25 0 0 1 423 20.150932208972925 L 423 40.17324922590421 A 2.25 2.25 0 0 0 427.5 40.17324922590421 L 427.5 22.434432439554648 A 2.25 2.25 0 0 1 432 22.434432439554648 L 432 42.78982475788919 A 2.25 2.25 0 0 0 436.5 42.78982475788919 L 436.5 18.113792081164767 A 2.25 2.25 0 0 1 441 18.113792081164767 L 441 39.58269648856974 A 2.25 2.25 0 0 0 445.5 39.58269648856974 L 445.5 20.907355557019567 A 2.25 2.25 0 0 1 450 20.907355557019567 L 450 38.47674418604651 A 2.25 2.25 0 0 0 454.5 38.47674418604651 L 454.5 19.196620330720073 A 2.25 2.25 0 0 1 459 19.196620330720073 L 459 39.723664273008765 A 2.25 2.25 0 0 0 463.5 39.723664273008765 L 463.5 20.20607418143488 A 2.25 2.25 0 0 1 468 20.20607418143488 L 468 41.34412675406812 A 2.25 2.25 0 0 0 472.5 41.34412675406812 L 472.5 20.058880690427564 A 2.25 2.25 0 0 1 477 20.058880690427564 L 477 40.14523354634693 A 2.25 2.25 0 0 0 481.5 40.14523354634693 L 481.5 22.182736016865405 A 2.25 2.25 0 0 1 486 22.182736016865405 L 486 39.776138085512876 A 2.25 2.25 0 0 0 490.5 39.776138085512876 L 490.5 21.966615060280652 A 2.25 2.25 0 0 1 495 21.966615060280652 L 495 40.25907503788128 A 2.25 2.25 0 0 0 499.5 40.25907503788128 L 499.5 23.037436590025692 A 2.25 2.25 0 0 1 504 23.037436590025692 L 504 40.57391791290598 A 2.25 2.25 0 0 0 508.5 40.57391791290598 L 508.5 22.549608011067924 A 2.25 2.25 0 0 1 513 22.549608011067924 L 513 40.810050069174515 A 2.25 2.25 0 0 0 517.5 40.810050069174515 L 517.5 21.02164174188023 A 2.25 2.25 0 0 1 522 21.02164174188023 L 522 40.33600698333223 A 2.25 2.25 0 0 0 526.5 40.33600698333223 L 526.5 19.717356215824495 A 2.25 2.25 0 0 1 531 19.717356215824495 L 531 40.670416364714406 A 2.25 2.25 0 0 0 535.5 40.670416364714406 L 535.5 20.999851768891233 A 2.25 2.25 0 0 1 540 20.999851768891233 L 540 40.158574346136106 A 2.25 2.25 0 0 0 544.5 40.158574346136106 L 544.5 20.859773371104815 A 2.25 2.25 0 0 1 549 20.859773371104815 L 549 38.727106528756835 A 2.25 2.25 0 0 0 553.5 38.727106528756835 L 553.5 21.160386059687724 A 2.25 2.25 0 0 1 558 21.160386059687724 L 558 30 A 2.25 2.25 0 0 0 562.5 30 A 2.25 2.25 0 0 1 567 30" fill="none" stroke="#e2e8f0" stroke-width="2" /><path id="podify-sticky-progress-path" d="M 0 30 L 0 30 A 2.25 2.25 0 0 0 4.5 30 A 2.25 2.25 0 0 1 9 30 L 9 37.14888991369655 A 2.25 2.25 0 0 0 13.5 37.14888991369655 L 13.5 24.81576520192371 A 2.25 2.25 0 0 1 18 24.81576520192371 L 18 40.138563146452334 A 2.25 2.25 0 0 0 22.5 40.138563146452334 L 22.5 19.60218064431122 A 2.25 2.25 0 0 1 27 19.60218064431122 L 27 37.719431451347255 A 2.25 2.25 0 0 0 31.5 37.719431451347255 L 31.5 20.517359509849136 A 2.25 2.25 0 0 1 36 20.517359509849136 L 36 37.415261216153894 A 2.25 2.25 0 0 0 40.5 37.415261216153894 L 40.5 21.577953093089135 A 2.25 2.25 0 0 1 45 21.577953093089135 L 45 37.80570195665064 A 2.25 2.25 0 0 0 49.5 37.80570195665064 L 49.5 21.28045325779037 A 2.25 2.25 0 0 1 54 21.28045325779037 L 54 38.571463864549706 A 2.25 2.25 0 0 0 58.5 38.571463864549706 L 58.5 20.29323407339087 A 2.25 2.25 0 0 1 63 20.29323407339087 L 63 41.12756110415706 A 2.25 2.25 0 0 0 67.5 41.12756110415706 L 67.5 20.563607615784967 A 2.25 2.25 0 0 1 72 20.563607615784967 L 72 41.40238157981422 A 2.25 2.25 0 0 0 76.5 41.40238157981422 L 76.5 19.282890836023455 A 2.25 2.25 0 0 1 81 19.282890836023455 L 81 39.10731932274854 A 2.25 2.25 0 0 0 85.5 39.10731932274854 L 85.5 21.333371763620793 A 2.25 2.25 0 0 1 90 21.333371763620793 L 90 38.17479741748468 A 2.25 2.25 0 0 0 94.5 38.17479741748468 L 94.5 20.75838329270703 A 2.25 2.25 0 0 1 99 20.75838329270703 L 99 38.16279069767442 A 2.25 2.25 0 0 0 103.5 38.16279069767442 L 103.5 21.401854535871927 A 2.25 2.25 0 0 1 108 21.401854535871927 L 108 39.68008432703077 A 2.25 2.25 0 0 0 112.5 39.68008432703077 L 112.5 18.0866657882601 A 2.25 2.25 0 0 1 117 18.0866657882601 L 117 39.63339152776863 A 2.25 2.25 0 0 0 121.5 39.63339152776863 L 121.5 20.792179985506294 A 2.25 2.25 0 0 1 126 20.792179985506294 L 126 39.769912378944596 A 2.25 2.25 0 0 0 130.5 39.769912378944596 L 130.5 20.827755451610777 A 2.25 2.25 0 0 1 135 20.827755451610777 L 135 39.15267804203175 A 2.25 2.25 0 0 0 139.5 39.15267804203175 L 139.5 20.61786020159431 A 2.25 2.25 0 0 1 144 20.61786020159431 L 144 41.08709401146321 A 2.25 2.25 0 0 0 148.5 41.08709401146321 L 148.5 19.70446010936162 A 2.25 2.25 0 0 1 153 19.70446010936162 L 153 39.563574675538575 A 2.25 2.25 0 0 0 157.5 39.563574675538575 L 157.5 19.670663416562356 A 2.25 2.25 0 0 1 162 19.670663416562356 L 162 37.19780617959022 A 2.25 2.25 0 0 0 166.5 37.19780617959022 L 166.5 21.22842413861256 A 2.25 2.25 0 0 1 171 21.22842413861256 L 171 40.35735226299492 A 2.25 2.25 0 0 0 175.5 40.35735226299492 L 175.5 19.413630673957442 A 2.25 2.25 0 0 1 180 19.413630673957442 L 180 39.156680281968505 A 2.25 2.25 0 0 0 184.5 39.156680281968505 L 184.5 21.18262072600303 A 2.25 2.25 0 0 1 189 21.18262072600303 L 189 41.46108109888662 A 2.25 2.25 0 0 0 193.5 41.46108109888662 L 193.5 20.721029053297322 A 2.25 2.25 0 0 1 198 20.721029053297322 L 198 40.01049146847618 A 2.25 2.25 0 0 0 202.5 40.01049146847618 L 202.5 20.52803214968048 A 2.25 2.25 0 0 1 207 20.52803214968048 L 207 38.40826141379537 A 2.25 2.25 0 0 0 211.5 38.40826141379537 L 211.5 20.367497858883986 A 2.25 2.25 0 0 1 216 20.367497858883986 L 216 38.73955794189341 A 2.25 2.25 0 0 0 220.5 38.73955794189341 L 220.5 21.79540812965281 A 2.25 2.25 0 0 1 225 21.79540812965281 L 225 39.56401936886488 A 2.25 2.25 0 0 0 229.5 39.56401936886488 L 229.5 21.9701726068911 A 2.25 2.25 0 0 1 234 21.9701726068911 L 234 43.5 A 2.25 2.25 0 0 0 238.5 43.5 L 238.5 19.463436326503725 A 2.25 2.25 0 0 1 243 19.463436326503725 L 243 41.46908557876013 A 2.25 2.25 0 0 0 247.5 41.46908557876013 L 247.5 19.62930693721589 A 2.25 2.25 0 0 1 252 19.62930693721589 L 252 37.672293958758814 A 2.25 2.25 0 0 0 256.5 37.672293958758814 L 256.5 20.705464786876608 A 2.25 2.25 0 0 1 261 20.705464786876608 L 261 41.823506159826074 A 2.25 2.25 0 0 0 265.5 41.823506159826074 L 265.5 19.11524145200606 A 2.25 2.25 0 0 1 270 19.11524145200606 L 270 39.017046577508395 A 2.25 2.25 0 0 0 274.5 39.017046577508395 L 274.5 20.665887080835365 A 2.25 2.25 0 0 1 279 20.665887080835365 L 279 40.95857764016075 A 2.25 2.25 0 0 0 283.5 40.95857764016075 L 283.5 18.329913037749524 A 2.25 2.25 0 0 1 288 18.329913037749524 L 288 39.46529745042493 A 2.25 2.25 0 0 0 292.5 39.46529745042493 L 292.5 21.292904670926937 A 2.25 2.25 0 0 1 297 21.292904670926937 L 297 39.91532709664668 A 2.25 2.25 0 0 0 301.5 39.91532709664668 L 301.5 21.984402793332897 A 2.25 2.25 0 0 1 306 21.984402793332897 L 306 37.24805652546281 A 2.25 2.25 0 0 0 310.5 37.24805652546281 L 310.5 21.951050793859938 A 2.25 2.25 0 0 1 315 21.951050793859938 L 315 42.894327689571114 A 2.25 2.25 0 0 0 319.5 42.894327689571114 L 319.5 20.79484814546413 A 2.25 2.25 0 0 1 324 20.79484814546413 L 324 39.28830950655511 A 2.25 2.25 0 0 0 328.5 39.28830950655511 L 328.5 19.499011792608208 A 2.25 2.25 0 0 1 333 19.499011792608208 L 333 39.476859476908885 A 2.25 2.25 0 0 0 337.5 39.476859476908885 L 337.5 21.327590750378814 A 2.25 2.25 0 0 1 342 21.327590750378814 L 342 39.62938928783187 A 2.25 2.25 0 0 0 346.5 39.62938928783187 L 346.5 22.48557217207985 A 2.25 2.25 0 0 1 351 22.48557217207985 L 351 39.38792081164767 A 2.25 2.25 0 0 0 355.5 39.38792081164767 L 355.5 20.38617497858884 A 2.25 2.25 0 0 1 360 20.38617497858884 L 360 41.70744120166019 A 2.25 2.25 0 0 0 364.5 41.70744120166019 L 364.5 21.52903682719547 A 2.25 2.25 0 0 1 369 21.52903682719547 L 369 42.287765992489625 A 2.25 2.25 0 0 0 373.5 42.287765992489625 L 373.5 20.093122076553133 A 2.25 2.25 0 0 1 378 20.093122076553133 L 378 40.52989327360169 A 2.25 2.25 0 0 0 382.5 40.52989327360169 L 382.5 20.88556558403057 A 2.25 2.25 0 0 1 387 20.88556558403057 L 387 38.36468146781738 A 2.25 2.25 0 0 0 391.5 38.36468146781738 L 391.5 21.639320772119376 A 2.25 2.25 0 0 1 396 21.639320772119376 L 396 40.53745306014889 A 2.25 2.25 0 0 0 400.5 40.53745306014889 L 400.5 20.017524211081103 A 2.25 2.25 0 0 1 405 20.017524211081103 L 405 39.86774491073193 A 2.25 2.25 0 0 0 409.5 39.86774491073193 L 409.5 22.12581527109823 A 2.25 2.25 0 0 1 414 22.12581527109823 L 414 41.34101390078398 A 2.25 2.25 0 0 0 418.5 41.34101390078398 L 418.5 20.150932208972925 A 2.25 2.25 0 0 1 423 20.150932208972925 L 423 40.17324922590421 A 2.25 2.25 0 0 0 427.5 40.17324922590421 L 427.5 22.434432439554648 A 2.25 2.25 0 0 1 432 22.434432439554648 L 432 42.78982475788919 A 2.25 2.25 0 0 0 436.5 42.78982475788919 L 436.5 18.113792081164767 A 2.25 2.25 0 0 1 441 18.113792081164767 L 441 39.58269648856974 A 2.25 2.25 0 0 0 445.5 39.58269648856974 L 445.5 20.907355557019567 A 2.25 2.25 0 0 1 450 20.907355557019567 L 450 38.47674418604651 A 2.25 2.25 0 0 0 454.5 38.47674418604651 L 454.5 19.196620330720073 A 2.25 2.25 0 0 1 459 19.196620330720073 L 459 39.723664273008765 A 2.25 2.25 0 0 0 463.5 39.723664273008765 L 463.5 20.20607418143488 A 2.25 2.25 0 0 1 468 20.20607418143488 L 468 41.34412675406812 A 2.25 2.25 0 0 0 472.5 41.34412675406812 L 472.5 20.058880690427564 A 2.25 2.25 0 0 1 477 20.058880690427564 L 477 40.14523354634693 A 2.25 2.25 0 0 0 481.5 40.14523354634693 L 481.5 22.182736016865405 A 2.25 2.25 0 0 1 486 22.182736016865405 L 486 39.776138085512876 A 2.25 2.25 0 0 0 490.5 39.776138085512876 L 490.5 21.966615060280652 A 2.25 2.25 0 0 1 495 21.966615060280652 L 495 40.25907503788128 A 2.25 2.25 0 0 0 499.5 40.25907503788128 L 499.5 23.037436590025692 A 2.25 2.25 0 0 1 504 23.037436590025692 L 504 40.57391791290598 A 2.25 2.25 0 0 0 508.5 40.57391791290598 L 508.5 22.549608011067924 A 2.25 2.25 0 0 1 513 22.549608011067924 L 513 40.810050069174515 A 2.25 2.25 0 0 0 517.5 40.810050069174515 L 517.5 21.02164174188023 A 2.25 2.25 0 0 1 522 21.02164174188023 L 522 40.33600698333223 A 2.25 2.25 0 0 0 526.5 40.33600698333223 L 526.5 19.717356215824495 A 2.25 2.25 0 0 1 531 19.717356215824495 L 531 40.670416364714406 A 2.25 2.25 0 0 0 535.5 40.670416364714406 L 535.5 20.999851768891233 A 2.25 2.25 0 0 1 540 20.999851768891233 L 540 40.158574346136106 A 2.25 2.25 0 0 0 544.5 40.158574346136106 L 544.5 20.859773371104815 A 2.25 2.25 0 0 1 549 20.859773371104815 L 549 38.727106528756835 A 2.25 2.25 0 0 0 553.5 38.727106528756835 L 553.5 21.160386059687724 A 2.25 2.25 0 0 1 558 21.160386059687724 L 558 30 A 2.25 2.25 0 0 0 562.5 30 A 2.25 2.25 0 0 1 567 30" fill="none" stroke="#0F172A" stroke-width="2" style="stroke-dasharray: 10000; stroke-dashoffset: 10000;" /><rect id="podify-sticky-click-area" width="100%" height="100%" fill="transparent" style="cursor:pointer;" /></svg></div>';
             $html .= '<div class="podify-sticky-inner">';
             $html .= '<div class="podify-sticky-left">';
             $html .= '<div class="podify-sticky-thumb"><img id="podify-sticky-img" src="'.($ep_img ?: '').'" alt=""></div>';
@@ -590,9 +643,7 @@ class FrontendInit {
                     return m + ":" + (se < 10 ? "0" : "") + se;
                 }
 
-                if(range) {
-                    range.style.background = "linear-gradient(to right, #f59e0b 0%, transparent 0%)";
-                }
+                // range removed
 
                 function setInitialTimeFromSticky(){
                     if(!timeEl || !stickyAudio) return;
@@ -680,19 +731,22 @@ class FrontendInit {
                     spCards.forEach(function(card){
                         var audio = card.querySelector("audio");
                         var btn = card.querySelector(".podify-sp-play-btn");
-                        var fill = card.querySelector(".podify-sp-progress-fill");
+                        var path = card.querySelector(".podify-sp-progress-path");
                         var curTxt = card.querySelector(".podify-sp-current");
                         if(audio && audio.src === currentAudio.src) {
                              if(btn) btn.innerHTML = currentAudio.paused ? SVG_SP_PLAY : SVG_SP_PAUSE;
                              var dur = currentAudio.duration || parseFloat(audio.getAttribute("data-duration-seconds")) || 0;
                              if(dur > 0) {
-                                 if(fill) fill.style.width = (cur/dur*100) + "%";
+                                 if(path) {
+                                     var pct = cur/dur;
+                                     var len = path.getTotalLength(); path.style.strokeDasharray = len; path.style.strokeDashoffset = len - (pct * len);
+                                 }
                                  if(curTxt) curTxt.textContent = fmtTime(cur);
                              }
                         } else {
                             // Reset others
                             if(btn) btn.innerHTML = SVG_SP_PLAY;
-                            if(fill) fill.style.width = "0%";
+                            if(path) { var len = path.getTotalLength(); path.style.strokeDasharray = len; path.style.strokeDashoffset = len; }
                             if(curTxt) curTxt.textContent = "0:00";
                         }
                     });
@@ -701,10 +755,10 @@ class FrontendInit {
                         var ds = parseFloat(currentAudio.getAttribute("data-duration-seconds")) || 0;
                         if (ds > 0) dur = ds;
                     }
-                    if(range && dur) {
-                        range.value = (cur / dur) * 100;
-                        var val = (cur / dur) * 100;
-                        range.style.background = "linear-gradient(to right, #f59e0b "+val+"%, transparent "+val+"%)";
+                    var stickyPath = document.getElementById("podify-sticky-progress-path");
+                    if(stickyPath && dur) {
+                        var pct = cur / dur;
+                        var len = stickyPath.getTotalLength(); stickyPath.style.strokeDasharray = len; stickyPath.style.strokeDashoffset = len - (pct * len);
                     }
                     if(timeEl) {
                         var durStr = currentAudio.getAttribute("data-duration") || (dur ? fmtTime(dur) : "0:00");
@@ -718,6 +772,7 @@ class FrontendInit {
 
                 if(playBtn) {
                     playBtn.addEventListener("click", function(){
+                        console.log("Podify Sticky Player Play Clicked");
                         if(!currentAudio) {
                             var playing = Array.from(document.querySelectorAll(".podify-episode-audio")).find(function(x){ return !x.paused; });
                             if (playing) { currentAudio = playing; }
@@ -843,20 +898,48 @@ class FrontendInit {
                     });
                 }
 
-                if(range) {
-                    range.addEventListener("input", function(){
+                // Sticky Click
+                var stickyClick = document.getElementById("podify-sticky-click-area");
+                if(stickyClick) {
+                    stickyClick.addEventListener("click", function(e){
                         if(!currentAudio) return;
-                        var dur = currentAudio.duration;
-                        if(dur) {
-                            currentAudio.currentTime = (range.value / 100) * dur;
+                        var rect = stickyClick.getBoundingClientRect();
+                        var x = e.clientX - rect.left;
+                        var w = rect.width;
+                        if(w > 0) {
+                            var pct = x / w;
+                            if(currentAudio.duration) {
+                                currentAudio.currentTime = pct * currentAudio.duration;
+                            }
                         }
                     });
                 }
+                
+                // SP Click
+                document.addEventListener("click", function(e){
+                    var t = e.target.closest(".podify-sp-click-area");
+                    if(!t) return;
+                    var svg = t.closest("svg");
+                    if(!svg) return;
+                    var card = svg.closest(".podify-single-player-card");
+                    if(!card) return;
+                    var audio = card.querySelector("audio");
+                    
+                    if(currentAudio && audio && currentAudio.src === audio.src) {
+                        var rect = svg.getBoundingClientRect();
+                        var x = e.clientX - rect.left;
+                        var w = rect.width;
+                        if(w > 0 && currentAudio.duration) {
+                            currentAudio.currentTime = (x/w) * currentAudio.duration;
+                        }
+                    }
+                });
 
                 // Single Player Click Handler
                 document.addEventListener("click", function(e){
                     var btn = e.target.closest(".podify-sp-play-btn");
                     if(!btn) return;
+                    console.log("Podify Single Player Play Clicked");
                     e.preventDefault();
                     e.stopPropagation();
                     

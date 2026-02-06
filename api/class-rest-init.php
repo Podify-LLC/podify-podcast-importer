@@ -102,8 +102,13 @@ class RestInit {
                         if ($pid > 0) {
                             $maudio = get_post_meta($pid, '_podify_audio_url', true);
                             $mimage = get_post_meta($pid, '_podify_episode_image', true);
-                            if (!empty($maudio) && wp_http_validate_url($maudio)) { $audio = esc_url($maudio); }
-                            if (!empty($mimage) && wp_http_validate_url($mimage)) { $image = esc_url($mimage); }
+                            // if (!empty($maudio) && wp_http_validate_url($maudio)) { $audio = esc_url($maudio); }
+                            if (has_post_thumbnail($pid)) {
+                                $thumb = get_the_post_thumbnail_url($pid, 'large');
+                                if ($thumb) { $image = esc_url($thumb); }
+                            } elseif (!empty($mimage) && wp_http_validate_url($mimage)) { 
+                                $image = esc_url($mimage); 
+                            }
                         }
                         $permalink = '';
                         if ($pid > 0) {

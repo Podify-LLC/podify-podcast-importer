@@ -2,6 +2,20 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.17
+
+### Title
+- Debugging tools, category sync fixes, and layout improvements
+
+### Added
+- Add debug `console.log` messages to List, Sticky, and Single Player play buttons for easier verification.
+
+### Fixed
+- Fix "Uncategorized" category appearing in Single Player frontend.
+- Fix Single Player layout issues (SVG progress bar overlap and time display wrapping).
+- Fix database sync to ensure manually assigned categories propagate to WordPress Post terms.
+- Fix Importer resync to preserve manual categories and correctly update audio URLs.
+
 ## 1.0.16
 
 ### Title
