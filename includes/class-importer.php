@@ -96,17 +96,17 @@ class Importer {
         Logger::log("Fetching feed URL: $url");
         $resp = wp_remote_get($url, ['timeout' => 30, 'headers' => ['Accept' => 'application/rss+xml, application/xml;q=0.9, */*;q=0.8']]);
         if (is_wp_error($resp)) {
-            Logger::log('Import error: '.$resp->get_error_message());
+            Logger::error('Import error: '.$resp->get_error_message());
             return ['ok' => false, 'message' => 'Failed to fetch feed: ' . $resp->get_error_message()];
         }
         $response_code = wp_remote_retrieve_response_code($resp);
         if ($response_code !== 200) {
-            Logger::log("Feed fetch failed with status code: $response_code");
+            Logger::error("Feed fetch failed with status code: $response_code");
             return ['ok' => false, 'message' => "Failed to fetch feed (HTTP $response_code)"];
         }
         $body = wp_remote_retrieve_body($resp);
         if (!$body) {
-            Logger::log("Feed response body is empty");
+            Logger::error("Feed response body is empty");
             return ['ok' => false, 'message' => 'Empty feed response'];
         }
         Logger::log("Feed fetched successfully. Body length: " . strlen($body));
@@ -121,7 +121,7 @@ class Importer {
         if (!$xml) {
             $errors = libxml_get_errors();
             foreach ($errors as $error) {
-                Logger::log("XML Parse Error: " . $error->message);
+                Logger::error("XML Parse Error: " . $error->message);
             }
             libxml_clear_errors();
             // Restore settings
@@ -132,6 +132,18 @@ class Importer {
         }
 
         $channel = isset($xml->channel) ? $xml->channel : $xml;
+        
+        // Extract and update feed title
+        $feed_title = isset($channel->title) ? trim((string)$channel->title) : '';
+        if ($feed_title) {
+            global $wpdb;
+            $wpdb->update(
+                "{$wpdb->prefix}podify_podcast_feeds", 
+                ['title' => $feed_title], 
+                ['id' => $feed_id]
+            );
+        }
+
         $defaultImage = '';
         if (isset($channel->image) && isset($channel->image->url)) {
             $defaultImage = (string)$channel->image->url;
@@ -538,6 +550,7 @@ class Importer {
                  }
                  if ($duration) { update_post_meta($post_id, '_podify_duration', sanitize_text_field($duration)); }
                  if ($tags) { update_post_meta($post_id, '_podify_tags', sanitize_text_field($tags)); }
+                 if ($feed_id) { update_post_meta($post_id, 'podify_feed_id', intval($feed_id)); }
                  
                  // Sync Categories
                  if (!empty($categories)) {
@@ -578,6 +591,7 @@ class Importer {
                      }
                      if ($duration) { update_post_meta($new_post_id, '_podify_duration', sanitize_text_field($duration)); }
                      if ($tags) { update_post_meta($new_post_id, '_podify_tags', sanitize_text_field($tags)); }
+                     if ($feed_id) { update_post_meta($new_post_id, 'podify_feed_id', intval($feed_id)); }
                      
                      // Sync Categories
                      if (!empty($categories)) {

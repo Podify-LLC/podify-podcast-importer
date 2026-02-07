@@ -30,7 +30,7 @@ class AdminInit {
         $post_types = get_post_types(['public' => true], 'objects');
         $post_statuses = ['publish'=>'Publish','draft'=>'Draft','private'=>'Private','pending'=>'Pending'];
         $authors = get_users(['who'=>'authors']);
-        $tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'import';
+        $tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'dashboard';
         if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'add_feed') {
             check_admin_referer('podify_add_feed');
             $url = isset($_POST['feed_url']) ? esc_url_raw($_POST['feed_url']) : '';
@@ -123,23 +123,90 @@ class AdminInit {
         $progress_url = esc_url_raw( rest_url('podify/v1/progress') );
         $nonce = wp_create_nonce('wp_rest');
         echo '<style>.podify-progress-wrap{display:none; width:140px; height:26px; background:#f0f0f1; border:1px solid #8c8f94; border-radius:3px; position:relative; vertical-align:middle; float:right; overflow:hidden;}.podify-progress-bar{height:100%; background:#2271b1; width:0%; transition:width 0.2s linear;}.podify-progress-text{position:absolute; top:0; left:0; right:0; bottom:0; line-height:24px; font-size:11px; color:#fff; text-shadow:0 0 2px #000; text-align:center; font-weight:600; white-space:nowrap; z-index:2;}</style>';
-        echo '<div class="wrap">';
-        echo '<h1>Podcast Importer</h1>';
+        echo '<div class="wrap podify-admin-wrap-main">';
+        // echo '<h1>Podcast Importer</h1>'; // Hidden in modern layout
         $msg = isset($_GET['podify_msg']) ? sanitize_key($_GET['podify_msg']) : '';
         if ($msg === 'added') $notice = 'Feed added';
         if ($msg === 'removed') $notice = 'Feed removed';
         if ($msg === 'cat_added') $notice = 'Category added';
         if ($notice) echo '<div class="updated"><p>'.esc_html($notice).'</p></div>';
-        echo '<div class="podify-admin">';
+        
         $base = admin_url('admin.php?page='.self::SLUG);
-        echo '<h2 class="nav-tab-wrapper">';
-        echo '<a href="'.$base.'&tab=import" class="nav-tab'.($tab==='import'?' nav-tab-active':'').'">Import Feed</a>';
-        echo '<a href="'.$base.'&tab=scheduled" class="nav-tab'.($tab==='scheduled'?' nav-tab-active':'').'">Scheduled Imports</a>';
-        echo '<a href="'.$base.'&tab=episodes" class="nav-tab'.($tab==='episodes'?' nav-tab-active':'').'">Podcast Episodes</a>';
-        echo '<a href="'.$base.'&tab=categories" class="nav-tab'.($tab==='categories'?' nav-tab-active':'').'">Categories</a>';
-        echo '<a href="'.$base.'&tab=shortcodes" class="nav-tab'.($tab==='shortcodes'?' nav-tab-active':'').'">Shortcodes & Settings</a>';
-        echo '</h2>';
-        if ($tab === 'import') {
+        
+        echo '<div class="podify-admin-layout">';
+        
+        // Sidebar
+        echo '<div class="podify-sidebar">';
+            echo '<div class="podify-sidebar-header">';
+                echo '<div class="podify-plugin-name">Podify Importer</div>';
+                echo '<div class="podify-plugin-version">v'.\PODIFY_PODCAST_VERSION.'</div>';
+            echo '</div>';
+            echo '<div class="podify-nav-links">';
+                $tabs = [
+                    'dashboard' => ['icon' => 'dashicons-dashboard', 'label' => 'Dashboard'],
+                    'import' => ['icon' => 'dashicons-plus-alt2', 'label' => 'Import Feed'],
+                    'scheduled' => ['icon' => 'dashicons-calendar-alt', 'label' => 'Schedules'],
+                    'episodes' => ['icon' => 'dashicons-playlist-audio', 'label' => 'Episodes'],
+                    'categories' => ['icon' => 'dashicons-category', 'label' => 'Categories'],
+                    'settings' => ['icon' => 'dashicons-admin-settings', 'label' => 'Settings'],
+                    'changelog' => ['icon' => 'dashicons-list-view', 'label' => 'Changelog'],
+                ];
+                foreach ($tabs as $k => $t) {
+                    $active = $tab === $k ? ' active' : '';
+                    echo '<a href="'.$base.'&tab='.$k.'" class="podify-nav-item'.$active.'">';
+                    echo '<span class="dashicons '.$t['icon'].'"></span> <span class="podify-nav-text">'.$t['label'].'</span>';
+                    echo '</a>';
+                }
+            echo '</div>';
+        echo '</div>'; // End sidebar
+
+        // Main Content Area
+        echo '<div class="podify-content">';
+        if ($tab === 'dashboard') {
+            echo '<div class="podify-dashboard-hero">';
+            echo '<div>';
+            echo '<h2>Welcome to Podify Podcast Importer Pro <span class="podify-version-badge">v'.\PODIFY_PODCAST_VERSION.'</span></h2>';
+            echo '<p>The ultimate solution for importing and managing podcasts in WordPress. Automated imports, modern players, and seamless integration.</p>';
+            echo '<a href="'.$base.'&tab=import" class="button button-primary button-hero" style="margin-top:15px">Import a Podcast</a>';
+            echo '</div>';
+            echo '<div style="font-size:48px; opacity:0.8;">🎙️</div>';
+            echo '</div>';
+            
+            echo '<div class="podify-dashboard-grid">';
+            
+            echo '<div class="podify-dashboard-card">';
+            echo '<h3><span class="dashicons dashicons-yes-alt"></span> Key Features</h3>';
+            echo '<ul class="podify-feature-list">';
+            echo '<li>Automated Background Imports</li>';
+            echo '<li>Modern Sticky Audio Player</li>';
+            echo '<li>SEO-Friendly Episode Pages</li>';
+            echo '<li>Advanced Category Mapping</li>';
+            echo '<li>Bulk Episode Management</li>';
+            echo '</ul>';
+            echo '</div>';
+            
+            echo '<div class="podify-dashboard-card">';
+            echo '<h3><span class="dashicons dashicons-admin-settings"></span> Quick Actions</h3>';
+            echo '<p style="margin-bottom:15px; color:#64748b;">Get started quickly with these common tasks:</p>';
+            echo '<div class="podify-action-grid">';
+            echo '<a href="'.$base.'&tab=import" class="podify-action-card"><span class="dashicons dashicons-plus-alt2"></span> <span>Import Feed</span></a>';
+            echo '<a href="'.$base.'&tab=scheduled" class="podify-action-card"><span class="dashicons dashicons-calendar-alt"></span> <span>Schedules</span></a>';
+            echo '<a href="'.$base.'&tab=episodes" class="podify-action-card"><span class="dashicons dashicons-playlist-audio"></span> <span>Episodes</span></a>';
+            echo '<a href="'.$base.'&tab=settings" class="podify-action-card"><span class="dashicons dashicons-admin-settings"></span> <span>Settings</span></a>';
+            echo '</div>';
+            echo '</div>';
+            
+            echo '<div class="podify-dashboard-card">';
+            echo '<h3><span class="dashicons dashicons-info"></span> Plugin Details</h3>';
+            echo '<p><strong>Version:</strong> '.\PODIFY_PODCAST_VERSION.'</p>';
+            echo '<p><strong>Author:</strong> Podify LLC</p>';
+            echo '<p><strong>License:</strong> Pro</p>';
+            echo '<p>Need help? Check the <a href="'.$base.'&tab=changelog">Changelog</a> or contact support.</p>';
+            echo '</div>';
+            
+            echo '</div>'; // End grid
+            
+        } elseif ($tab === 'import') {
             echo '<form method="post"><input type="hidden" name="podify_action" value="add_feed">';
             wp_nonce_field('podify_add_feed');
             echo '<div class="podify-grid">';
@@ -228,7 +295,7 @@ class AdminInit {
             echo '        }';
             echo '        if(txt) txt.textContent=d.percentage+"% ("+d.current+"/"+d.total+") "+(d.status||"");';
             echo '      }';
-            echo '    }).catch(function(e){console.log("Poll error ignored:",e);});';
+            echo '    }).catch(function(e){});';
             echo '  }, 3000);';
             echo '}';
             echo 'function stopPoll(t, id, msg) {';
@@ -247,6 +314,8 @@ class AdminInit {
         } elseif ($tab === 'episodes') {
             $feed_filter = isset($_GET['feed_id']) ? intval($_GET['feed_id']) : 0;
             $limit_ep = isset($_GET['limit']) ? max(25, min(500, intval($_GET['limit']))) : ($feed_filter ? 50 : 25);
+
+
             $search_q = isset($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
             $orderby_q = isset($_GET['orderby']) && in_array($_GET['orderby'], ['published','title'], true) ? $_GET['orderby'] : 'published';
             $order_q = isset($_GET['order']) && in_array(strtolower($_GET['order']), ['asc','desc'], true) ? strtolower($_GET['order']) : 'desc';
@@ -450,6 +519,44 @@ class AdminInit {
             echo 'document.addEventListener("click",function(e){var s=e.target.closest(".podify-cat-save");if(s){var id=parseInt(s.getAttribute("data-id"));var input=document.querySelector(".podify-cat-name[data-id=\'"+id+"\']");var feedSel=document.querySelector(".podify-cat-feed[data-id=\'"+id+"\']");if(!input)return;var name=input.value.trim();if(!name)return;var feedId=feedSel?parseInt(feedSel.value):0;s.disabled=true;fetch(UPD_URL,{method:"POST",headers:{"Content-Type":"application/json","X-WP-Nonce":NONCE},body:JSON.stringify({id:id,name:name,feed_id:feedId})}).then(function(r){return r.json()}).then(function(d){s.disabled=false;if(d&&d.ok){var slugCell=s.closest("tr").querySelector(".podify-cat-slug");if(slugCell){slugCell.textContent=name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}}else{alert("Failed to update: "+(d.message||"Unknown error"))}}).catch(function(){s.disabled=false;alert("Failed")});}});';
             echo 'document.addEventListener("click",function(e){var b=e.target.closest(".podify-cat-delete");if(b){var id=parseInt(b.getAttribute("data-id"));if(!id)return;if(!confirm("Delete this category?"))return;b.disabled=true;fetch(DEL_URL,{method:"POST",headers:{"Content-Type":"application/json","X-WP-Nonce":NONCE},body:JSON.stringify({id:id})}).then(function(r){return r.json()}).then(function(d){b.disabled=false;if(d&&d.ok){var tr=b.closest("tr");if(tr){tr.parentNode.removeChild(tr);}}else{alert("Failed to delete")}}).catch(function(){b.disabled=false;alert("Failed")});}});';
             echo '})();</script>';
+        } elseif ($tab === 'changelog') {
+            echo '<div class="podify-changelog">';
+            echo '<h1>Changelog</h1>';
+            $file = \PODIFY_PODCAST_PATH . 'changelogs.md';
+            if (file_exists($file)) {
+                $raw = file_get_contents($file);
+                $lines = explode("\n", $raw);
+                $in_list = false;
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if (empty($line)) {
+                        if ($in_list) { echo '</ul>'; $in_list = false; }
+                        continue;
+                    }
+                    if (strpos($line, '## ') === 0) {
+                        if ($in_list) { echo '</ul>'; $in_list = false; }
+                        echo '<h2>'.esc_html(substr($line, 3)).'</h2>';
+                    } elseif (strpos($line, '### ') === 0) {
+                        if ($in_list) { echo '</ul>'; $in_list = false; }
+                        echo '<h3>'.esc_html(substr($line, 4)).'</h3>';
+                    } elseif (strpos($line, '- ') === 0) {
+                        if (!$in_list) { echo '<ul>'; $in_list = true; }
+                        $content = substr($line, 2);
+                        $content = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $content);
+                        $content = preg_replace('/`(.+?)`/', '<code>$1</code>', $content);
+                        echo '<li>'.$content.'</li>';
+                    } else {
+                        if ($in_list) { echo '</ul>'; $in_list = false; }
+                        $content = $line;
+                        $content = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $content);
+                        echo '<p>'.$content.'</p>';
+                    }
+                }
+                if ($in_list) { echo '</ul>'; }
+            } else {
+                echo '<p>Changelog not found.</p>';
+            }
+            echo '</div>';
         } else {
             $settings = \PodifyPodcast\Core\Settings::get();
             echo '<div class="podify-grid">';
@@ -480,7 +587,8 @@ class AdminInit {
             echo '</div>';
             echo '</div>';
         }
-        echo '</div>';
-        echo '</div>';
+        echo '</div>'; // End podify-content
+        echo '</div>'; // End podify-admin-layout
+        echo '</div>'; // End wrap
     }
 }

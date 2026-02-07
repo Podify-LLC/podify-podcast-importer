@@ -22,6 +22,7 @@ class Database {
         dbDelta("CREATE TABLE {$wpdb->prefix}podify_podcast_feeds (
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
             feed_url TEXT NOT NULL,
+            title VARCHAR(255) NULL,
             last_sync DATETIME NULL,
             options LONGTEXT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -68,6 +69,10 @@ class Database {
         }
         // Migrate columns if needed
         if ($feeds) {
+            $has_title = $wpdb->get_var("SHOW COLUMNS FROM {$wpdb->prefix}podify_podcast_feeds LIKE 'title'");
+            if (!$has_title) {
+                $wpdb->query("ALTER TABLE {$wpdb->prefix}podify_podcast_feeds ADD COLUMN title VARCHAR(255) NULL AFTER feed_url");
+            }
             $has_options = $wpdb->get_var("SHOW COLUMNS FROM {$wpdb->prefix}podify_podcast_feeds LIKE 'options'");
             if (!$has_options) {
                 $wpdb->query("ALTER TABLE {$wpdb->prefix}podify_podcast_feeds ADD COLUMN options LONGTEXT NULL");

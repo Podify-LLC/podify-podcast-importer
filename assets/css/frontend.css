@@ -74,7 +74,7 @@
 .podify-episode-link:hover { text-decoration: underline; }
 .podify-episode-meta { color: #667085; font-size: 12px; margin-top: 6px; }
 .podify-episode-categories { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-.podify-category-pill { display: inline-flex; align-items: center; padding: 4px 8px; font-size: 12px; border-radius: 999px; background: #eef6ff; color: #0f172a; border: 1px solid #dbeafe; }
+/* .podify-category-pill removed */
 .podify-episode-desc { color: #3c3c3c; font-size: 14px; line-height: 1.5; margin: 6px 0 10px; }
 .podify-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .podify-episode-actions { margin-top: auto; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
@@ -129,7 +129,7 @@
 .podify-load-more:hover { border-color: #cbd5e1; background: #f8fafc; }
 .podify-load-more:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Sticky Player Styles (minimal needed here if injected) */
+/* Sticky Player Styles */
 .podify-sticky-player {
   position: fixed;
   bottom: 0;
@@ -146,50 +146,30 @@
 .podify-sticky-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 8px 20px;
   display: flex;
   align-items: center;
+  height: 80px;
   gap: 20px;
 }
-.podify-sticky-progress-container {
-  width: 100%;
-  height: 4px;
-  background: #e2e8f0;
-  position: absolute;
-  top: -2px;
-  left: 0;
-  cursor: pointer;
-}
-.podify-sticky-progress-container input[type=range] {
-  width: 100%;
-  position: absolute;
-  top: -6px;
-  height: 16px;
-  opacity: 0;
-  cursor: pointer;
-  margin: 0;
-}
-/* Visible progress bar via JS background on container or pseudo */
 
-.podify-sticky-left {
+/* Left: Controls */
+.podify-sticky-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
-  width: 300px;
+  width: 250px;
+  flex-shrink: 0;
 }
 .podify-sticky-thumb {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 6px;
   overflow: hidden;
   background: #f1f5f9;
+  margin-right: 16px;
   flex-shrink: 0;
 }
-.podify-sticky-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.podify-sticky-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .podify-sticky-meta {
   display: flex;
   flex-direction: column;
@@ -197,190 +177,194 @@
 }
 #podify-sticky-title {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 2px;
 }
 #podify-sticky-subtitle {
-  font-size: 12px;
+  font-size: 13px;
   color: #64748b;
 }
 
+/* Center: Waveform */
+.podify-sticky-progress-container {
+  flex-grow: 1;
+  height: 45px;
+  position: relative;
+  /* background: #f8fafc; */ /* Optional bg for debug */
+}
+#podify-sticky-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Right: Time, Volume */
 .podify-sticky-right {
-  margin-left: auto;
+  width: 200px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 16px;
 }
 #podify-sticky-time {
-  font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: #64748b;
-  min-width: 80px;
-  text-align: right;
+  font-size: 13px;
+  font-weight: 500;
 }
 .podify-volume-btn {
   background: none;
   border: none;
-  cursor: pointer;
   color: #64748b;
+  cursor: pointer;
   padding: 4px;
+  display: flex;
+  align-items: center;
 }
 .podify-volume-btn:hover { color: #0f172a; }
+
+/* Volume Slider */
+.podify-volume-slider,
+.podify-sp-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 60px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 2px;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.podify-volume-slider:hover,
+.podify-sp-volume-slider:hover {
+    opacity: 1;
+}
+.podify-volume-slider::-webkit-slider-thumb,
+.podify-sp-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #0b5bd3;
+    border-radius: 50%;
+    cursor: pointer;
+}
+.podify-volume-slider::-moz-range-thumb,
+.podify-sp-volume-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #0b5bd3;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+/* Large Play Btn override */
 .podify-play-btn-large {
-  width: 40px;
-  height: 40px;
-  background: none;
+  background: #0b5bd3;
   border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
   color: #fff;
   cursor: pointer;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
   transition: transform 0.1s;
 }
-.podify-play-btn-large:active {
-  transform: scale(0.95);
+.podify-play-btn-large:active { transform: scale(0.95); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .podify-sticky-inner { flex-direction: column; height: auto; padding: 12px; gap: 12px; }
+  .podify-sticky-controls { width: 100%; }
+  .podify-sticky-progress-container { width: 100%; height: 40px; }
+  .podify-sticky-right { width: 100%; justify-content: space-between; }
 }
 
-/* Single Post Player */
+/* Single Player Card Styles */
 .podify-single-player-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    margin: 24px 0;
-    font-family: inherit;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+  max-width: 800px;
 }
 .podify-sp-inner {
-    display: flex;
-    gap: 20px;
-    align-items: center;
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+  align-items: center;
 }
 .podify-sp-cover {
-    flex-shrink: 0;
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #f1f5f9;
-}
-.podify-sp-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-.podify-sp-content {
-    flex-grow: 1;
-    min-width: 0;
-}
-.podify-sp-meta {
-    margin-bottom: 12px;
-}
-.podify-sp-label {
-    display: block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #64748b;
-    margin-bottom: 4px;
-    font-weight: 600;
-}
-.podify-sp-categories {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
-}
-.podify-sp-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #0f172a;
-    margin: 0;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-.podify-sp-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-.podify-sp-play-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    color: #0b5bd3;
-    transition: transform 0.1s;
-    display: flex;
-}
-.podify-sp-play-btn:active {
-    transform: scale(0.95);
-}
-.podify-sp-progress-container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-.podify-sp-progress-bar {
-    height: 6px;
-    background: #e2e8f0;
-    border-radius: 999px;
-    overflow: hidden;
-    position: relative;
-    width: 100%;
-}
-.podify-sp-progress-fill {
-    height: 100%;
-    background: #0b5bd3;
-    border-radius: 999px;
-    width: 0%;
-    transition: width 0.1s linear;
-}
-.podify-sp-time {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: #64748b;
-    margin-top: 6px;
-    font-feature-settings: "tnum";
-    font-variant-numeric: tabular-nums;
-}
-.podify-sp-separator {
-    margin: 0 4px;
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+  flex-shrink: 0;
 }
 .podify-sp-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #cbd5e1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 100%; height: 100%;
+  background: #cbd5e1;
+  display: flex; align-items: center; justify-content: center;
 }
-.podify-sp-placeholder::after {
-    content: "🎙️";
-    font-size: 32px;
-    opacity: 0.5;
+.podify-sp-placeholder::after { content: "🎙️"; font-size: 32px; opacity: 0.3; }
+
+.podify-sp-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
+.podify-sp-meta { margin-bottom: 12px; }
+.podify-sp-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0b5bd3;
+  margin-bottom: 4px;
+}
+.podify-sp-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 600px) {
-    .podify-sp-inner {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .podify-sp-cover {
-        width: 80px;
-        height: 80px;
-    }
-    .podify-sp-controls {
-        width: 100%;
-    }
+  .podify-sp-inner { flex-direction: column; text-align: center; }
+  .podify-sp-controls-top { justify-content: center; }
+  .podify-sp-cover { width: 100%; height: auto; aspect-ratio: 16/9; max-width: 300px; margin: 0 auto; }
+  .podify-sp-content { width: 100%; }
+}
+
+/* Force hide audio elements */
+audio.podify-episode-audio, 
+#podify-sticky-audio,
+.podify-single-player audio,
+.podify-sticky-player audio {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+    z-index: -1 !important;
 }
