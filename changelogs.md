@@ -2,6 +2,26 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.19
+
+### Title
+- Volume Controls, Modern Admin Dashboard, and Player Fixes
+
+### Added
+- **Volume Control**: Added volume slider and mute toggle to both Single Player and Sticky Player.
+- **Modern Admin Dashboard**: Completely redesigned admin interface with sidebar navigation, Welcome page, and grid-based actions.
+- **Auto-Updater Configuration**: Hardcoded GitHub Personal Access Token for seamless automatic updates without manual configuration.
+
+### Fixed
+- **Audio Playback**: Resolved "Missing audio or play button" error by improving player initialization and fallback detection.
+- **Player Layout**: Fixed issue where audio element was rendered outside the player container.
+- **Channel Title**: Forced channel title display to "The Language of Love by Dr. Laura Berman" for specific feed slugs.
+- **Duplicate Handlers**: Fixed conflict where duplicate play button listeners prevented audio playback.
+
+### Changed
+- **Logs**: Removed excessive non-error `console.log` debugging messages.
+- **Sticky Player**: Optimized state management for smoother play/pause transitions.
+
 ## 1.0.17
 
 ### Title
