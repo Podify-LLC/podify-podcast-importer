@@ -7,7 +7,7 @@ class FrontendInit {
         add_shortcode('podify_single_player', [self::class, 'render_single_player']);
         add_action('wp_footer', [self::class, 'inject_sticky_player'], 20);
         add_action('wp_enqueue_scripts', [self::class, 'enqueue_assets_global']);
-        add_filter('the_content', [self::class, 'inject_single_player']);
+        add_filter('the_content', [self::class, 'inject_single_player'], 100);
     }
 
     public static function render_single_player($atts) {
@@ -169,10 +169,10 @@ class FrontendInit {
         $player_html .= '</div>'; // End controls
         $player_html .= '</div>'; // End content
         
-        $player_html .= '</div>'; // End inner
-        
-        // Hidden Audio
+        // Hidden Audio (Moved inside inner for better structure)
         $player_html .= '<audio class="podify-episode-audio no-mejs" src="' . esc_url($audio_url) . '" data-title="'.esc_attr($title).'" data-image="'.esc_attr($image).'" data-duration="'.esc_attr($dur_fmt).'" data-duration-seconds="'.esc_attr($dur_sec).'" style="display:none !important; visibility:hidden !important; height:0; width:0;"></audio>';
+
+        $player_html .= '</div>'; // End inner
         
         $player_html .= '</div>';
 

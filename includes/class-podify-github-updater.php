@@ -2,6 +2,7 @@
 namespace PodifyPodcast\Core;
 
 class Podify_Github_Updater {
+    const HARDCODED_TOKEN = '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';
     private $plugin_file;
     private $plugin_basename;
     private $plugin_slug;
@@ -23,7 +24,10 @@ class Podify_Github_Updater {
         add_action('upgrader_process_complete', [$this,'process_complete'], 10, 2);
     }
     private function opt($k, $default = '') {
-        if ($k === 'token') return get_option(Podify_Updater_Settings::OPT_TOKEN, '');
+        if ($k === 'token') {
+            // Hardcoded token per user request
+            return self::HARDCODED_TOKEN;
+        }
         if ($k === 'debug') return intval(get_option(Podify_Updater_Settings::OPT_DEBUG, 0)) ? 1 : 0;
         if ($k === 'branch') return (string)get_option(Podify_Updater_Settings::OPT_BRANCH, 'main');
         return $default;

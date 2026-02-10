@@ -11,14 +11,23 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Fallback: Check if audio is adjacent (fix for some themes/plugins moving it)
         if (!audio) {
+            // Try finding any audio tag inside
+            audio = player.querySelector('audio');
+        }
+        if (!audio) {
             var next = player.nextElementSibling;
-            if (next && next.tagName === 'AUDIO' && next.classList.contains('podify-episode-audio')) {
+            if (next && next.tagName === 'AUDIO') {
                 player.appendChild(next);
                 audio = next;
             }
         }
 
         var playBtn = player.querySelector('.podify-sp-play-btn');
+        if (!playBtn) {
+            // Fallback: Try finding button by aria-label
+            playBtn = player.querySelector('button[aria-label="Play"]');
+        }
+
         var volBtn = player.querySelector('.podify-sp-volume-btn');
         var volSlider = player.querySelector('.podify-sp-volume-slider');
         var gradient = player.querySelector('linearGradient');
@@ -27,10 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
         var durTimeEl = player.querySelector('.podify-sp-duration');
 
         if (!audio || !playBtn) {
-            console.warn('Podify: Missing required elements', {
-                hasAudio: !!audio, 
-                hasPlayBtn: !!playBtn, 
-                id: player.id
+            console.warn('Podify: Missing required elements for player ' + player.id, {
+                foundAudio: !!audio, 
+                foundPlayBtn: !!playBtn,
+                htmlContent: player.innerHTML.substring(0, 200) + '...'
             });
             return;
         }
@@ -64,8 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Play/Pause
-        /* 
-        // Disabled: Handled by global delegation in class-frontend-init.php to support Sticky Player
         playBtn.addEventListener('click', function(e) {
             e.preventDefault();
             if (!audio.src || audio.src.trim() === '') {
@@ -85,7 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 audio.pause();
             }
         });
-        */
 
         // Volume
         if (volBtn) {
@@ -172,63 +178,5 @@ document.addEventListener('DOMContentLoaded', function() {
             return h + ':' + (m < 10 ? '0' : '') + m + ':' + (se < 10 ? '0' : '') + se;
         }
         return m + ':' + (se < 10 ? '0' : '') + se;
-    }
-
-    // Sticky Player Logic
-    var stickyPlayer = document.getElementById('podify-sticky-player');
-    if (stickyPlayer) {
-        var sAudio = document.getElementById('podify-sticky-audio');
-        var sPlayBtn = document.getElementById('podify-sticky-play');
-        var sVolBtn = document.getElementById('podify-sticky-volume-btn');
-        var sVolSlider = document.getElementById('podify-sticky-volume-slider');
-        var sTitle = document.getElementById('podify-sticky-title');
-        var sImg = document.getElementById('podify-sticky-img');
-        
-        if (sAudio && sPlayBtn) {
-            var iconPlayS = '<svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><circle cx="12" cy="12" r="12" fill="white"/><path d="M9.5 8l6 4-6 4V8z" fill="black"/></svg>';
-            var iconPauseS = '<svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor"><circle cx="12" cy="12" r="12" fill="white"/><path d="M9 8h2v8H9V8zm4 0h2v8h-2V8z" fill="black"/></svg>';
-            var iconVolOn = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M14 8.5a4.5 4.5 0 010 7" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
-            var iconVolOff = '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 9v6h4l5 4V5L7 9H3z"/><path d="M16 8l4 4-4 4M12 8l-4 4 4 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
-
-            sPlayBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (sAudio.paused) {
-                    // Pause others
-                    document.querySelectorAll('audio.podify-episode-audio').forEach(function(a) {
-                         if(a !== sAudio && !a.paused) a.pause();
-                    });
-                    sAudio.play().catch(function(e){ console.error('Podify Sticky Play Error', e); });
-                } else {
-                    sAudio.pause();
-                }
-            });
-
-            sAudio.addEventListener('play', function() { sPlayBtn.innerHTML = iconPauseS; });
-            sAudio.addEventListener('pause', function() { sPlayBtn.innerHTML = iconPlayS; });
-            
-            // Volume
-            if (sVolBtn) {
-                sVolBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    sAudio.muted = !sAudio.muted;
-                    sVolBtn.innerHTML = sAudio.muted ? iconVolOff : iconVolOn;
-                    if(sVolSlider) sVolSlider.value = sAudio.muted ? 0 : (sAudio.volume||1);
-                });
-                sAudio.addEventListener('volumechange', function() {
-                    var isMuted = sAudio.muted || sAudio.volume === 0;
-                    sVolBtn.innerHTML = isMuted ? iconVolOff : iconVolOn;
-                    if(sVolSlider) sVolSlider.value = isMuted ? 0 : sAudio.volume;
-                });
-            }
-            if (sVolSlider) {
-                sVolSlider.addEventListener('input', function(e) {
-                    e.stopPropagation();
-                    var v = parseFloat(this.value);
-                    sAudio.volume = v;
-                    sAudio.muted = (v === 0);
-                });
-                sVolSlider.value = sAudio.muted ? 0 : sAudio.volume;
-            }
-        }
     }
 });
