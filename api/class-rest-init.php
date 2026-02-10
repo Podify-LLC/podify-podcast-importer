@@ -71,7 +71,7 @@ class RestInit {
                 $order = (string)$req->get_param('order');
 
                 // DEBUG LOGGING
-                error_log(sprintf('Podify API /episodes: feed_id=%d limit=%d offset=%d cat=%d q=%s', $feed_id, $limit, $offset, $category_id, $q));
+                // error_log(sprintf('Podify API /episodes: feed_id=%d limit=%d offset=%d cat=%d q=%s', $feed_id, $limit, $offset, $category_id, $q));
 
                 if ($limit <= 0 || $limit > 500) $limit = 9;
                 if ($offset < 0) $offset = 0;

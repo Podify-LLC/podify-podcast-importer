@@ -177,6 +177,22 @@ class AdminInit {
             echo '<div class="podify-dashboard-grid">';
             
             echo '<div class="podify-dashboard-card">';
+            echo '<h3><span class="dashicons dashicons-update"></span> Updater Status</h3>';
+            $updater_status = get_option('podify_updater_status', []);
+            if (!empty($updater_status) && is_array($updater_status)) {
+                $st = $updater_status['status'] ?? 'unknown';
+                $st_color = ($st === 'success') ? '#46b450' : (($st === 'error') ? '#dc3232' : '#f0b849');
+                echo '<p><strong>Status:</strong> <span style="color:'.esc_attr($st_color).';font-weight:600">'.esc_html(strtoupper($st)).'</span></p>';
+                echo '<p><strong>Message:</strong> '.esc_html($updater_status['message'] ?? '').'</p>';
+                if (!empty($updater_status['time'])) {
+                    echo '<p style="color:#64748b; font-size:12px; margin-top:5px">Last checked: '.date_i18n(get_option('date_format').' '.get_option('time_format'), $updater_status['time']).'</p>';
+                }
+            } else {
+                echo '<p style="color:#64748b">No update activity recorded yet.</p>';
+            }
+            echo '</div>';
+            
+            echo '<div class="podify-dashboard-card">';
             echo '<h3><span class="dashicons dashicons-yes-alt"></span> Key Features</h3>';
             echo '<ul class="podify-feature-list">';
             echo '<li>Automated Background Imports</li>';

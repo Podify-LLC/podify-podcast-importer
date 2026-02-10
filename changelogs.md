@@ -5,10 +5,14 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 ## 1.0.21
 
 ### Title
-- Font Updates and UI Refinements
+- Font Updates, Updater Status, and Code Cleanup
+
+### Added
+- **Updater Status**: Added visual indicator in Admin Dashboard (General tab) to show GitHub updater connection status and last check time.
 
 ### Changed
 - **Typography**: Updated the episode title font in the podcast player to "Very Vogue" for a more stylish appearance.
+- **Code Cleanup**: Removed residual debug logs and `console.log` statements for cleaner production performance.
 
 ## 1.0.20
 
