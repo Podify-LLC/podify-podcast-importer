@@ -8,7 +8,9 @@ class AdminInit {
         add_action('admin_enqueue_scripts', [self::class,'enqueue']);
     }
     public static function menu() {
-        add_menu_page('Podcast Importer','Podcast Importer','manage_options',self::SLUG,[self::class,'page'], 'dashicons-microphone');
+        // Position 11 places it right after 'Media' (10) and before 'Links' (15) or 'Pages' (20)
+        // This moves it away from the bottom and likely near content-related items like Image Carousel
+        add_menu_page('Podcast Importer','Podcast Importer','manage_options',self::SLUG,[self::class,'page'], 'dashicons-microphone', 11);
         add_submenu_page(self::SLUG,'Podcast Importer','Dashboard','manage_options',self::SLUG,[self::class,'page']);
     }
     public static function enqueue($hook) {

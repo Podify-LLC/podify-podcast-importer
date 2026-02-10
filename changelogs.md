@@ -2,10 +2,10 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
-## 1.0.19
+## 1.0.20
 
 ### Title
-- Volume Controls, Modern Admin Dashboard, and Player Fixes
+- Volume Controls, Modern Admin Dashboard, Menu Positioning, and Player Fixes
 
 ### Added
 - **Volume Control**: Added volume slider and mute toggle to both Single Player and Sticky Player.
@@ -19,6 +19,7 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 - **Duplicate Handlers**: Fixed conflict where duplicate play button listeners prevented audio playback.
 
 ### Changed
+- **Admin Menu**: Moved "Podcast Importer" menu item up (below Media) for better accessibility.
 - **Logs**: Removed excessive non-error `console.log` debugging messages.
 - **Sticky Player**: Optimized state management for smoother play/pause transitions.
 
