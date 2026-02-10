@@ -5,10 +5,11 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.
 ## 1.0.23
 
 ### Title
-- Maintenance and Standardization
+- Standardization of Changelog File
 
 ### Changed
-- **Standards**: Renamed `changelogs.md` to `changelog.md` to follow standard repository conventions.
+- **Maintenance**: Renamed `changelogs.md` to `changelog.md` to follow standard conventions.
+- **Admin**: Updated dashboard to read from the new changelog filename.
 
 ## 1.0.22
 
