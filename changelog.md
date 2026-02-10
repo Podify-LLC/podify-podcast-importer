@@ -2,6 +2,14 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.25
+### Title
+- Updater Fixes & Cleanup
+
+### Fixed
+- **Updater**: Resolved "Failed to download package" error by implementing proper authentication headers for private repository assets.
+- **Cleanup**: Removed residual debug logging for cleaner production performance.
+
 ## 1.0.24
 ### Title
 - Modern UI Updates & Enhanced Updater Control

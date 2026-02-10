@@ -53,9 +53,9 @@ class Podify_Github_Updater {
         return $args;
     }
     private function log($m) {
-        if ($this->opt('debug')) {
-            error_log('[Podify Updater] '.$m);
-        }
+        // if ($this->opt('debug')) {
+        //    error_log('[Podify Updater] '.$m);
+        // }
     }
     private function get_installed_version() {
         if (!function_exists('get_plugin_data')) {
