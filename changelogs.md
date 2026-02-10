@@ -2,6 +2,14 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.21
+
+### Title
+- Font Updates and UI Refinements
+
+### Changed
+- **Typography**: Updated the episode title font in the podcast player to "Very Vogue" for a more stylish appearance.
+
 ## 1.0.20
 
 ### Title
