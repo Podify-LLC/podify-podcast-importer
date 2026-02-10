@@ -26,9 +26,16 @@ class Podify_Github_Updater {
         if ($k === 'token') {
             // Priority: Constant (wp-config.php) > DB Option > Empty
             if (defined('PODIFY_GITHUB_TOKEN') && PODIFY_GITHUB_TOKEN) {
+                if ($this->opt('debug')) {
+                     error_log('[Podify Updater] Using token from PODIFY_GITHUB_TOKEN constant: ' . substr(PODIFY_GITHUB_TOKEN, 0, 15) . '...');
+                }
                 return PODIFY_GITHUB_TOKEN;
             }
-            return get_option(Podify_Updater_Settings::OPT_TOKEN, $default);
+            $db_token = get_option(Podify_Updater_Settings::OPT_TOKEN, $default);
+            if ($this->opt('debug')) {
+                 error_log('[Podify Updater] Using token from DB: ' . ($db_token ? substr($db_token, 0, 15) . '...' : 'Empty'));
+            }
+            return $db_token;
         }
         if ($k === 'debug') return intval(get_option(Podify_Updater_Settings::OPT_DEBUG, 0)) ? 1 : 0;
         if ($k === 'branch') return (string)get_option(Podify_Updater_Settings::OPT_BRANCH, 'main');

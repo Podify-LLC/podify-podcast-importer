@@ -540,7 +540,7 @@ class AdminInit {
         } elseif ($tab === 'changelog') {
             echo '<div class="podify-changelog">';
             echo '<h1>Changelog</h1>';
-            $file = \PODIFY_PODCAST_PATH . 'changelogs.md';
+            $file = \PODIFY_PODCAST_PATH . 'changelog.md';
             if (file_exists($file)) {
                 $raw = file_get_contents($file);
                 $lines = explode("\n", $raw);
