@@ -2,6 +2,14 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.26
+### Title
+- Updater & UI Refinements
+
+### Improved
+- **UI**: Enhanced text readability for updater status messages and flash notices.
+- **Updater**: Improved robustness of plugin update extraction and folder handling to prevent "No valid plugins found" errors.
+
 ## 1.0.25
 ### Title
 - Updater Fixes & Cleanup

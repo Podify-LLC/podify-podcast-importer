@@ -152,7 +152,7 @@ class AdminInit {
         if ($msg === 'added') $notice = 'Feed added';
         if ($msg === 'removed') $notice = 'Feed removed';
         if ($msg === 'cat_added') $notice = 'Category added';
-        if ($notice) echo '<div class="updated"><p>'.esc_html($notice).'</p></div>';
+        if ($notice) echo '<div class="updated" style="border-left-color:#46b450;"><p style="color:#1d2327; font-weight:600;">'.esc_html($notice).'</p></div>';
         
         $base = admin_url('admin.php?page='.self::SLUG);
         

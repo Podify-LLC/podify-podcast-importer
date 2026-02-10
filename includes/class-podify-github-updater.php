@@ -148,18 +148,13 @@ class Podify_Github_Updater {
         }
         
         if ($zip === '') {
-            if (!empty($json['zipball_url'])) {
-                $zip = (string)$json['zipball_url'];
-                $this->log('Using zipball_url as fallback');
-            } else {
-                $this->log('No ZIP asset found in release');
-                update_option('podify_updater_status', [
-                    'time' => time(),
-                    'status' => 'error',
-                    'message' => 'No ZIP asset found for v'.$ver
-                ]);
-                return null;
-            }
+            $this->log('No ZIP asset found in release');
+            update_option('podify_updater_status', [
+                'time' => time(),
+                'status' => 'error',
+                'message' => 'No ZIP asset found for v'.$ver
+            ]);
+            return null;
         }
         
         // Update success status
