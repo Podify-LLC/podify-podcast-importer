@@ -45,6 +45,7 @@ class Podify_Github_Updater {
     public function http_request_args($args, $url) {
         if (empty($this->release) || empty($this->release['zip_url'])) return $args;
         if ($url === $this->release['zip_url']) {
+             $this->log("Injecting auth token for ZIP: $url");
              $token = $this->opt('token');
              if ($token) {
                  $args['headers']['Authorization'] = 'Bearer ' . $token;
@@ -53,9 +54,9 @@ class Podify_Github_Updater {
         return $args;
     }
     private function log($m) {
-        // if ($this->opt('debug')) {
-        //    error_log('[Podify Updater] '.$m);
-        // }
+        if ($this->opt('debug')) {
+           error_log('[Podify Updater] '.$m);
+        }
     }
     private function get_installed_version() {
         if (!function_exists('get_plugin_data')) {
@@ -296,6 +297,7 @@ class Podify_Github_Updater {
         return $bool;
     }
     public function source_selection($source, $remote_source, $upgrader, $hook_extra = null) {
+        $this->log("Source Selection: $source");
         // Fix: Only run for this specific plugin
         if (isset($hook_extra['plugin']) && $hook_extra['plugin'] !== $this->plugin_basename) {
             return $source;
@@ -304,9 +306,7 @@ class Podify_Github_Updater {
         // If hook_extra is missing/empty, try to detect if it's us by checking for the main file
         $main_file = trailingslashit($source) . basename($this->plugin_file);
         if (!file_exists($main_file)) {
-            // It doesn't contain our main file, so it's likely not our plugin (or it's broken).
-            // However, we shouldn't block other plugins if we are unsure.
-            // But if we are sure it WAS meant to be us (checked above via hook_extra), then it's an error.
+            $this->log("Main file not found at: $main_file");
             if (isset($hook_extra['plugin']) && $hook_extra['plugin'] === $this->plugin_basename) {
                 return new \WP_Error('podify_updater', 'Main plugin file missing in ZIP');
             }
@@ -319,20 +319,26 @@ class Podify_Github_Updater {
 
         if ($current_slug !== $correct_slug) {
             $new_source = trailingslashit(dirname($source)) . $correct_slug;
+            $this->log("Renaming slug from $current_slug to $correct_slug");
             
-            // If the destination exists (rare in upgrade temp), try to clear it? 
-            // WP usually handles unique temp dirs, but let's be safe.
-            if (file_exists($new_source)) {
-                 // If we can't rename because target exists, we might be in trouble, 
-                 // but let's try to return the new source anyway if it's valid?
-                 // Standard WP practice is to rename using $wp_filesystem->move usually, 
-                 // but here we are in a filter returning a path. PHP rename works for local paths.
-                 // We will rely on simple rename.
+            global $wp_filesystem;
+            if ($wp_filesystem) {
+                if ($wp_filesystem->exists($new_source)) {
+                    $this->log("Destination exists, deleting: $new_source");
+                    $wp_filesystem->delete($new_source, true);
+                }
+                if ($wp_filesystem->move($source, $new_source)) {
+                    $this->log("Move success via WP_Filesystem");
+                    return $new_source;
+                }
             }
-
+            
+            // Fallback
             if (rename($source, $new_source)) {
+                $this->log("Rename success via PHP");
                 return $new_source;
             } else {
+                $this->log("Rename failed");
                 return new \WP_Error('podify_updater', 'Unable to rename plugin folder');
             }
         }
