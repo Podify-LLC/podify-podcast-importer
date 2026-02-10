@@ -176,49 +176,7 @@ class AdminInit {
             
             echo '<div class="podify-dashboard-grid">';
             
-            echo '<div class="podify-dashboard-card">';
-            echo '<h3><span class="dashicons dashicons-update"></span> Updater Status</h3>';
-            $updater_status = get_option('podify_updater_status', []);
-            if (!empty($updater_status) && is_array($updater_status)) {
-                $st = $updater_status['status'] ?? 'unknown';
-                $msg = $updater_status['message'] ?? '';
-                $remote_ver = $updater_status['version'] ?? '';
-                
-                // Determine context
-                $local_ver = \PODIFY_PODCAST_VERSION;
-                $context_msg = '';
-                
-                if ($st === 'success' && $remote_ver) {
-                    if (version_compare($local_ver, $remote_ver, '>')) {
-                        $st = 'Dev';
-                        $st_color = '#10b981'; // Green
-                        $context_msg = 'Local version (v'.$local_ver.') is ahead of remote (v'.$remote_ver.').';
-                    } elseif (version_compare($local_ver, $remote_ver, '<')) {
-                        $st = 'Update Available';
-                        $st_color = '#f59e0b'; // Orange
-                        $context_msg = 'A new version (v'.$remote_ver.') is available.';
-                    } else {
-                        $st = 'Up to Date';
-                        $st_color = '#3b82f6'; // Blue
-                        $context_msg = 'You are on the latest version (v'.$local_ver.').';
-                    }
-                } else {
-                     $st_color = ($st === 'success') ? '#46b450' : (($st === 'error') ? '#dc3232' : '#f0b849');
-                     $context_msg = $msg;
-                }
 
-                echo '<p><strong>Status:</strong> <span style="color:'.esc_attr($st_color).';font-weight:700">'.esc_html(strtoupper($st)).'</span></p>';
-                if ($context_msg) {
-                    echo '<p>'.esc_html($context_msg).'</p>';
-                }
-                
-                if (!empty($updater_status['time'])) {
-                    echo '<p style="color:#64748b; font-size:12px; margin-top:5px">Last checked: '.date_i18n(get_option('date_format').' '.get_option('time_format'), $updater_status['time']).'</p>';
-                }
-            } else {
-                echo '<p style="color:#64748b">No update activity recorded yet.</p>';
-            }
-            echo '</div>';
             
             echo '<div class="podify-dashboard-card">';
             echo '<h3><span class="dashicons dashicons-yes-alt"></span> Key Features</h3>';

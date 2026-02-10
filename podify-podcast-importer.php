@@ -27,5 +27,5 @@ if (is_admin()) {
     require_once PODIFY_PODCAST_PATH . 'includes/class-podify-github-updater.php';
     require_once PODIFY_PODCAST_PATH . 'includes/class-podify-updater-settings.php';
     new \PodifyPodcast\Core\Podify_Github_Updater(__FILE__);
-    \PodifyPodcast\Core\Podify_Updater_Settings::register();
+    // \PodifyPodcast\Core\Podify_Updater_Settings::register();
 }
