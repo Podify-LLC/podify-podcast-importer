@@ -16,7 +16,8 @@ class Podify_Github_Updater {
         $this->backup_dir = WP_CONTENT_DIR . '/upgrade/podify-backup';
         add_filter('pre_set_site_transient_update_plugins', [$this,'inject_update']);
         add_filter('plugins_api', [$this,'plugins_api'], 10, 3);
-        add_filter('upgrader_pre_download', [$this,'pre_download'], 10, 3);
+        // add_filter('upgrader_pre_download', [$this,'pre_download'], 10, 3);
+        add_filter('http_request_args', [$this, 'http_request_args'], 10, 2);
         add_filter('upgrader_source_selection', [$this,'source_selection'], 10, 4);
         add_action('upgrader_pre_install', [$this,'pre_install'], 10, 2);
         add_filter('upgrader_post_install', [$this,'post_install'], 10, 3);
@@ -40,6 +41,16 @@ class Podify_Github_Updater {
         if ($k === 'debug') return intval(get_option(Podify_Updater_Settings::OPT_DEBUG, 0)) ? 1 : 0;
         if ($k === 'branch') return (string)get_option(Podify_Updater_Settings::OPT_BRANCH, 'main');
         return $default;
+    }
+    public function http_request_args($args, $url) {
+        if (empty($this->release) || empty($this->release['zip_url'])) return $args;
+        if ($url === $this->release['zip_url']) {
+             $token = $this->opt('token');
+             if ($token) {
+                 $args['headers']['Authorization'] = 'Bearer ' . $token;
+             }
+        }
+        return $args;
     }
     private function log($m) {
         if ($this->opt('debug')) {
