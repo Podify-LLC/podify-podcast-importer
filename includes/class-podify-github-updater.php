@@ -2,7 +2,6 @@
 namespace PodifyPodcast\Core;
 
 class Podify_Github_Updater {
-    const HARDCODED_TOKEN = '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';
     private $plugin_file;
     private $plugin_basename;
     private $plugin_slug;
@@ -25,8 +24,11 @@ class Podify_Github_Updater {
     }
     private function opt($k, $default = '') {
         if ($k === 'token') {
-            // Hardcoded token per user request
-            return self::HARDCODED_TOKEN;
+            // Priority: Constant (wp-config.php) > DB Option > Empty
+            if (defined('PODIFY_GITHUB_TOKEN') && PODIFY_GITHUB_TOKEN) {
+                return PODIFY_GITHUB_TOKEN;
+            }
+            return get_option(Podify_Updater_Settings::OPT_TOKEN, $default);
         }
         if ($k === 'debug') return intval(get_option(Podify_Updater_Settings::OPT_DEBUG, 0)) ? 1 : 0;
         if ($k === 'branch') return (string)get_option(Podify_Updater_Settings::OPT_BRANCH, 'main');
