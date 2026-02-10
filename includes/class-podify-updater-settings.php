@@ -56,7 +56,28 @@ class Podify_Updater_Settings {
         echo '<input type="hidden" name="podify_updater_action" value="save">';
         wp_nonce_field('podify_updater_save');
         echo '<table class="form-table" role="presentation"><tbody>';
-        // GitHub Token field hidden as it is hardcoded in class-podify-github-updater.php
+        
+        // Token Field
+        $token_val = $token;
+        $is_constant = defined('PODIFY_GITHUB_TOKEN') && PODIFY_GITHUB_TOKEN;
+        if ($is_constant) {
+            $token_val = 'Set in wp-config.php (Hidden)';
+        }
+        
+        echo '<tr>
+            <th scope="row"><label for="podify_updater_token">GitHub Access Token</label></th>
+            <td>';
+        
+        if ($is_constant) {
+            echo '<input type="text" value="'.esc_attr($token_val).'" class="regular-text" disabled>';
+            echo '<p class="description">Token is defined via <code>PODIFY_GITHUB_TOKEN</code> constant.</p>';
+        } else {
+            echo '<input type="password" id="podify_updater_token" name="podify_updater_token" value="'.esc_attr($token_val).'" class="regular-text">';
+            echo '<p class="description">Enter a GitHub Personal Access Token (Fine-grained) with <code>contents:read</code> access to the repository.</p>';
+        }
+        
+        echo '</td></tr>';
+
         echo '<tr><th scope="row">Enable Debug Logging</th><td><label><input type="checkbox" name="podify_updater_debug" value="1"'.($debug?' checked':'').'> Enable</label></td></tr>';
         echo '<tr><th scope="row"><label for="podify_updater_branch">Locked Release Branch</label></th><td><input type="text" id="podify_updater_branch" name="podify_updater_branch" value="'.esc_attr($branch ?: 'main').'" class="regular-text"></td></tr>';
         echo '</tbody></table>';
