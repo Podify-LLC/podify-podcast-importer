@@ -56,8 +56,7 @@ class Podify_Github_Updater {
         if ($token !== '') {
             $args['headers']['Authorization'] = 'Bearer '.$token;
         }
-        // Updated to match the Pro repository name likely used for this plugin
-        $url = 'https://api.github.com/repos/Podify-LLC/podify-podcast-importer-pro/releases/latest';
+        $url = 'https://api.github.com/repos/Podify-LLC/podify-podcast-importer/releases/latest';
         $this->log('Requesting latest release from: '.$url);
         
         $resp = wp_remote_get($url, $args);
