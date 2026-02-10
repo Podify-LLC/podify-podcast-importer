@@ -118,6 +118,12 @@ class AdminInit {
             delete_transient('podify_updater_check');
             $notice = 'Cache cleared';
         }
+        if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'refresh_updater') {
+            check_admin_referer('podify_refresh_updater');
+            wp_clean_plugins_cache();
+            wp_update_plugins();
+            $notice = 'Updater checked successfully.';
+        }
         $feeds = \PodifyPodcast\Core\Database::get_feeds();
         $episodes = \PodifyPodcast\Core\Database::get_episodes(null, 10, 0);
         $sync_url = esc_url_raw( rest_url('podify/v1/sync') );
@@ -175,6 +181,57 @@ class AdminInit {
             echo '</div>';
             
             echo '<div class="podify-dashboard-grid">';
+            
+            echo '<div class="podify-dashboard-card">';
+            echo '<h3><span class="dashicons dashicons-update"></span> Updater Status</h3>';
+            $updater_status = get_option('podify_updater_status', []);
+            if (!empty($updater_status) && is_array($updater_status)) {
+                $st = $updater_status['status'] ?? 'unknown';
+                $msg = $updater_status['message'] ?? '';
+                $remote_ver = $updater_status['version'] ?? '';
+                
+                // Determine context
+                $local_ver = \PODIFY_PODCAST_VERSION;
+                $context_msg = '';
+                
+                if ($st === 'success' && $remote_ver) {
+                    if (version_compare($local_ver, $remote_ver, '>')) {
+                        $st = 'Dev';
+                        $st_color = '#10b981'; // Green
+                        $context_msg = 'Local version (v'.$local_ver.') is ahead of remote (v'.$remote_ver.').';
+                    } elseif (version_compare($local_ver, $remote_ver, '<')) {
+                        $st = 'Update Available';
+                        $st_color = '#f59e0b'; // Orange
+                        $context_msg = 'A new version (v'.$remote_ver.') is available.';
+                    } else {
+                        $st = 'Up to Date';
+                        $st_color = '#3b82f6'; // Blue
+                        $context_msg = 'You are on the latest version (v'.$local_ver.').';
+                    }
+                } else {
+                     $st_color = ($st === 'success') ? '#46b450' : (($st === 'error') ? '#dc3232' : '#f0b849');
+                     $context_msg = $msg;
+                }
+
+                echo '<p><strong>Status:</strong> <span style="color:'.esc_attr($st_color).';font-weight:700">'.esc_html(strtoupper($st)).'</span></p>';
+                if ($context_msg) {
+                    echo '<p>'.esc_html($context_msg).'</p>';
+                }
+                
+                if (!empty($updater_status['time'])) {
+                    echo '<p style="color:#64748b; font-size:12px; margin-top:5px">Last checked: '.date_i18n(get_option('date_format').' '.get_option('time_format'), $updater_status['time']).'</p>';
+                }
+            } else {
+                echo '<p style="color:#64748b">No update activity recorded yet.</p>';
+            }
+            
+            echo '<form method="post" style="margin-top:15px; border-top:1px solid #f0f0f1; padding-top:10px;">';
+            echo '<input type="hidden" name="podify_action" value="refresh_updater">';
+            wp_nonce_field('podify_refresh_updater');
+            echo '<button type="submit" class="button button-secondary button-small"><span class="dashicons dashicons-update" style="line-height:1.3"></span> Check Now</button>';
+            echo '</form>';
+
+            echo '</div>';
             
 
             

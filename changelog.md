@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **Podify Podcast Importer Pro** are documented here.# Changelog
+All notable changes to **Podify Podcast Importer Pro** are documented here.
 
 ## 1.0.23
 ### Title
@@ -9,7 +9,7 @@ All notable changes to **Podify Podcast Importer Pro** are documented here.# Cha
 ### Changed
 - **Maintenance**: Renamed `changelogs.md` to `changelog.md` to follow standard conventions.
 - **Admin**: Updated dashboard to read from the new changelog filename.
-- **Admin**: Removed the "Podify Updater" settings page and dashboard status widget. Token configuration is now handled exclusively via `wp-config.php` for better security and cleaner UI.
+- **Admin**: Removed the "Podify Updater" settings page. Token configuration is now handled exclusively via `wp-config.php` for better security and cleaner UI. The Updater Status widget remains in the Dashboard.
 
 ## 1.0.22
 
