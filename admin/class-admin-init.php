@@ -130,7 +130,22 @@ class AdminInit {
         $resync_url = esc_url_raw( rest_url('podify/v1/resync') );
         $progress_url = esc_url_raw( rest_url('podify/v1/progress') );
         $nonce = wp_create_nonce('wp_rest');
-        echo '<style>.podify-progress-wrap{display:none; width:140px; height:26px; background:#f0f0f1; border:1px solid #8c8f94; border-radius:3px; position:relative; vertical-align:middle; float:right; overflow:hidden;}.podify-progress-bar{height:100%; background:#2271b1; width:0%; transition:width 0.2s linear;}.podify-progress-text{position:absolute; top:0; left:0; right:0; bottom:0; line-height:24px; font-size:11px; color:#fff; text-shadow:0 0 2px #000; text-align:center; font-weight:600; white-space:nowrap; z-index:2;}</style>';
+        echo '<style>
+        .podify-progress-wrap{display:none; width:140px; height:26px; background:#f0f0f1; border:1px solid #8c8f94; border-radius:3px; position:relative; vertical-align:middle; float:right; overflow:hidden;}
+        .podify-progress-bar{height:100%; background:#2271b1; width:0%; transition:width 0.2s linear;}
+        .podify-progress-text{position:absolute; top:0; left:0; right:0; bottom:0; line-height:24px; font-size:11px; color:#fff; text-shadow:0 0 2px #000; text-align:center; font-weight:600; white-space:nowrap; z-index:2;}
+        /* Modern Table Styles */
+        .podify-table-card { background:#fff; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,0.05); margin-top:20px; }
+        .podify-modern-table { width:100%; border-collapse:collapse; text-align:left; }
+        .podify-modern-table th { background:#f8fafc; padding:16px; font-weight:600; color:#475569; border-bottom:1px solid #e2e8f0; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; }
+        .podify-modern-table td { padding:16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; color:#334155; font-size:13px; }
+        .podify-modern-table tr:last-child td { border-bottom:none; }
+        .podify-modern-table tr:hover { background:#f8fafc; }
+        .podify-actions-cell { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+        .podify-badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; background:#e2e8f0; color:#475569; }
+        .podify-url-text { font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color:#0f172a; background:#f1f5f9; padding:4px 8px; border-radius:4px; font-size:12px; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border:1px solid #e2e8f0; }
+        .podify-status-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:500; background:#dcfce7; color:#166534; }
+        </style>';
         echo '<div class="wrap podify-admin-wrap-main">';
         // echo '<h1>Podcast Importer</h1>'; // Hidden in modern layout
         $msg = isset($_GET['podify_msg']) ? sanitize_key($_GET['podify_msg']) : '';
@@ -299,7 +314,10 @@ class AdminInit {
             echo '</div>';
             echo '<div class="podify-actions"><button class="button button-primary">Add Import</button></div></form>';
         } elseif ($tab === 'scheduled') {
-            echo '<table class="widefat"><thead><tr><th>Title</th><th>Feed Link</th><th>Interval</th><th>Actions</th></tr></thead><tbody>';
+            echo '<div class="podify-table-card">';
+            echo '<table class="podify-modern-table">';
+            echo '<thead><tr><th style="width:80px">ID</th><th>Feed Source</th><th style="width:220px">Interval</th><th style="width:380px">Actions</th></tr></thead>';
+            echo '<tbody>';
             if ($feeds) {
                 foreach ($feeds as $f) {
                     $id = intval($f['id']);
@@ -308,30 +326,41 @@ class AdminInit {
                     $opts = [];
                     if (!empty($full['options'])) { $opts = json_decode($full['options'], true) ?: []; }
                     $interval_cur = isset($opts['interval']) ? $opts['interval'] : 'hourly';
-                    echo '<tr><td>Feed '.$id.'</td><td>'.$url.'</td><td>';
-                    echo '<form method="post" style="display:inline;margin-right:8px"><input type="hidden" name="podify_action" value="update_feed_options"><input type="hidden" name="feed_id" value="'.$id.'">';
+                    
+                    echo '<tr>';
+                    echo '<td><span class="podify-badge">#'.$id.'</span></td>';
+                    echo '<td><div class="podify-url-text" title="'.$url.'">'.$url.'</div></td>';
+                    
+                    echo '<td>';
+                    echo '<form method="post" style="display:flex; gap:6px; align-items:center;">';
+                    echo '<input type="hidden" name="podify_action" value="update_feed_options"><input type="hidden" name="feed_id" value="'.$id.'">';
                     wp_nonce_field('podify_update_feed');
-                    echo '<select name="interval" style="width:180px">';
+                    echo '<select name="interval" style="max-width:130px; font-size:12px; height:30px; line-height:1; min-height:30px; border-color:#cbd5e1; border-radius:4px;">';
                     foreach ($intervals as $key=>$label) {
                         $sel = $interval_cur===$key ? ' selected' : '';
                         echo '<option value="'.esc_attr($key).'"'.$sel.'>'.esc_html($label).'</option>';
                     }
                     echo '</select> ';
-                    echo '<button class="button">Save</button></form>';
-                    echo '</td><td>';
-                    echo '<a class="button" href="'.$base.'&tab=episodes&feed_id='.$id.'">View Episodes</a> ';
-                    echo '<button class="button podify-sync" data-id="'.$id.'">Sync now</button> ';
-                    echo '<button class="button podify-resync" data-id="'.$id.'">Force Re-Sync</button> ';
+                    echo '<button class="button button-small" style="height:30px; line-height:28px;">Save</button></form>';
+                    echo '</td>';
+                    
+                    echo '<td>';
+                    echo '<div class="podify-actions-cell">';
+                    echo '<a class="button button-small" href="'.$base.'&tab=episodes&feed_id='.$id.'">Episodes</a> ';
+                    echo '<button class="button button-small podify-sync" data-id="'.$id.'"><span class="dashicons dashicons-update" style="font-size:14px;line-height:1.8;margin-right:2px"></span> Sync</button> ';
+                    echo '<button class="button button-small podify-resync" data-id="'.$id.'">Force</button> ';
                     echo '<form method="post" style="display:inline"><input type="hidden" name="podify_action" value="remove_feed"><input type="hidden" name="feed_id" value="'.$id.'">';
                     wp_nonce_field('podify_remove_feed');
-                    echo '<button class="button button-link-delete">Remove</button></form>';
-                    echo '<div class="podify-progress-wrap" data-id="'.$id.'"><div class="podify-progress-bar"></div><div class="podify-progress-text"></div></div>';
+                    echo '<button class="button button-link-delete button-small" style="color:#ef4444">Remove</button></form>';
+                    echo '<div class="podify-progress-wrap" data-id="'.$id.'" style="width:100px; height:20px; margin-left:5px;"><div class="podify-progress-bar"></div><div class="podify-progress-text" style="font-size:9px; line-height:20px;"></div></div>';
+                    echo '</div>'; 
                     echo '</td></tr>';
                 }
             } else {
-                echo '<tr><td colspan="4">No scheduled imports</td></tr>';
+                echo '<tr><td colspan="4" style="text-align:center; padding:40px; color:#64748b;">No scheduled imports found. <a href="'.$base.'&tab=import">Add one now</a>.</td></tr>';
             }
             echo '</tbody></table>';
+            echo '</div>';
             echo '<script>(function(){';
             echo 'const SYNC_URL = '.wp_json_encode($sync_url).';';
             echo 'const RESYNC_URL = '.wp_json_encode($resync_url).';';

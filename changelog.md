@@ -2,6 +2,17 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.24
+### Title
+- Modern UI Updates & Enhanced Updater Control
+
+### Added
+- **Updater**: Added a "Check Now" button to the Dashboard Updater Status widget for manual update checks.
+
+### Changed
+- **UI**: Completely modernized the "Schedules" table layout with card styling, status badges, and better alignment.
+- **Admin**: Restored and improved the Updater Status widget in the Dashboard for better visibility of version status.
+
 ## 1.0.23
 ### Title
 - UI Streamlining, Cleanup & Standardization
