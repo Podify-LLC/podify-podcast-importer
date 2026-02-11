@@ -43,13 +43,19 @@ class Podify_Github_Updater {
         return $default;
     }
     public function http_request_args($args, $url) {
-        if (empty($this->release) || empty($this->release['zip_url'])) return $args;
-        if ($url === $this->release['zip_url']) {
-             $this->log("Injecting auth token for ZIP: $url");
-             $token = $this->opt('token');
-             if ($token) {
-                 $args['headers']['Authorization'] = 'Bearer ' . $token;
-             }
+        if (strpos($url, 'api.github.com') !== false) {
+            $token = $this->opt('token');
+            if ($token) {
+                $args['headers']['Authorization'] = 'Bearer ' . $token;
+                $args['headers']['User-Agent']    = 'WordPress';
+                
+                // Use octet-stream only for asset downloads
+                if (strpos($url, '/releases/assets/') !== false) {
+                    $args['headers']['Accept'] = 'application/octet-stream';
+                } elseif (!isset($args['headers']['Accept'])) {
+                    $args['headers']['Accept'] = 'application/vnd.github+json';
+                }
+            }
         }
         return $args;
     }
@@ -134,8 +140,11 @@ class Podify_Github_Updater {
         if (!empty($json['assets']) && is_array($json['assets'])) {
             foreach ($json['assets'] as $asset) {
                 $name = isset($asset['name']) ? (string)$asset['name'] : '';
-                $dl = isset($asset['browser_download_url']) ? (string)$asset['browser_download_url'] : '';
+                // Use the API URL instead of browser_download_url for private repo assets
+                $dl = isset($asset['url']) ? (string)$asset['url'] : '';
+                
                 if ($name && preg_match('/\.zip$/i', $name)) {
+                    // Prefer asset with plugin slug in name
                     if (strpos($name, $this->plugin_slug) !== false) {
                         $zip = $dl;
                         break;
@@ -148,18 +157,13 @@ class Podify_Github_Updater {
         }
         
         if ($zip === '') {
-            if (!empty($json['zipball_url'])) {
-                $zip = (string)$json['zipball_url'];
-                $this->log('Using zipball_url as fallback');
-            } else {
-                $this->log('No ZIP asset found in release');
-                update_option('podify_updater_status', [
-                    'time' => time(),
-                    'status' => 'error',
-                    'message' => 'No ZIP asset found for v'.$ver
-                ]);
-                return null;
-            }
+            $this->log('No ZIP asset found in release');
+            update_option('podify_updater_status', [
+                'time' => time(),
+                'status' => 'error',
+                'message' => 'No ZIP asset found for v'.$ver
+            ]);
+            return null;
         }
         
         // Update success status
@@ -298,25 +302,35 @@ class Podify_Github_Updater {
     }
     public function source_selection($source, $remote_source, $upgrader, $hook_extra = null) {
         $this->log("Source Selection: $source");
-        // Fix: Only run for this specific plugin
-        if (isset($hook_extra['plugin']) && $hook_extra['plugin'] !== $this->plugin_basename) {
-            return $source;
+        
+        // Only run for this specific plugin if we can identify it
+        $is_us = false;
+        if (isset($hook_extra['plugin']) && $hook_extra['plugin'] === $this->plugin_basename) {
+            $is_us = true;
+        } elseif (strpos($source, $this->plugin_slug) !== false) {
+            $is_us = true;
         }
 
-        // If hook_extra is missing/empty, try to detect if it's us by checking for the main file
-        $main_file = trailingslashit($source) . basename($this->plugin_file);
-        if (!file_exists($main_file)) {
-            $this->log("Main file not found at: $main_file");
-            if (isset($hook_extra['plugin']) && $hook_extra['plugin'] === $this->plugin_basename) {
-                return new \WP_Error('podify_updater', 'Main plugin file missing in ZIP');
-            }
-            return $source;
-        }
+        if (!$is_us) return $source;
 
-        // It is our plugin. Now ensure the folder name is correct.
         $correct_slug = $this->plugin_slug;
-        $current_slug = basename($source);
+        $source_path = trailingslashit($source);
+        
+        // If the main file is not in the root, look one level deeper
+        if (!file_exists($source_path . basename($this->plugin_file))) {
+            $dirs = glob($source_path . '*', GLOB_ONLYDIR);
+            if ($dirs) {
+                foreach ($dirs as $dir) {
+                    if (file_exists(trailingslashit($dir) . basename($this->plugin_file))) {
+                        $this->log("Found main file in subdirectory: " . basename($dir));
+                        $source = $dir;
+                        break;
+                    }
+                }
+            }
+        }
 
+        $current_slug = basename($source);
         if ($current_slug !== $correct_slug) {
             $new_source = trailingslashit(dirname($source)) . $correct_slug;
             $this->log("Renaming slug from $current_slug to $correct_slug");
@@ -324,22 +338,15 @@ class Podify_Github_Updater {
             global $wp_filesystem;
             if ($wp_filesystem) {
                 if ($wp_filesystem->exists($new_source)) {
-                    $this->log("Destination exists, deleting: $new_source");
                     $wp_filesystem->delete($new_source, true);
                 }
                 if ($wp_filesystem->move($source, $new_source)) {
-                    $this->log("Move success via WP_Filesystem");
                     return $new_source;
                 }
             }
             
-            // Fallback
             if (rename($source, $new_source)) {
-                $this->log("Rename success via PHP");
                 return $new_source;
-            } else {
-                $this->log("Rename failed");
-                return new \WP_Error('podify_updater', 'Unable to rename plugin folder');
             }
         }
 
