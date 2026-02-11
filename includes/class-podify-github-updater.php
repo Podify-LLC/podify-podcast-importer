@@ -83,7 +83,7 @@ class Podify_Github_Updater {
         if ($token !== '') {
             $args['headers']['Authorization'] = 'Bearer '.$token;
         }
-        $url = 'https://api.github.com/repos/Podify-LLC/podify-podcast-importer/releases/latest';
+        $url = 'https://api.github.com/repos/Podify-LLC/podify-podcast-importer-pro/releases/latest';
         $this->log('Requesting latest release from: '.$url);
         
         $resp = wp_remote_get($url, $args);
@@ -201,7 +201,7 @@ class Podify_Github_Updater {
             $obj->plugin = $this->plugin_basename;
             $obj->new_version = $rel['version'];
             $obj->package = $rel['zip_url'];
-            $obj->url = 'https://github.com/Podify-LLC/podify-podcast-importer';
+            $obj->url = 'https://github.com/Podify-LLC/podify-podcast-importer-pro';
             if (!isset($transient->response)) $transient->response = [];
             $transient->response[$this->plugin_basename] = $obj;
             $this->log('Update injected: '.$rel['version']);
@@ -218,7 +218,7 @@ class Podify_Github_Updater {
         $res->slug = $this->plugin_slug;
         $res->version = $rel['version'];
         $res->author = 'Podify';
-        $res->homepage = 'https://github.com/Podify-LLC/podify-podcast-importer';
+        $res->homepage = 'https://github.com/Podify-LLC/podify-podcast-importer-pro';
         $res->download_link = $rel['zip_url'];
         $res->sections = [
             'description' => 'Advanced podcast importer with private GitHub updates.',
@@ -228,7 +228,7 @@ class Podify_Github_Updater {
     }
     public function pre_download($reply, $package, $upgrader) {
         $is_plugin = (isset($upgrader->skin) && isset($upgrader->skin->plugin) && $upgrader->skin->plugin === $this->plugin_basename);
-        $matches_repo = (strpos($package, 'github.com/Podify-LLC/podify-podcast-importer') !== false) || (strpos($package, 'api.github.com/repos/Podify-LLC/podify-podcast-importer') !== false);
+        $matches_repo = (strpos($package, 'github.com/Podify-LLC/podify-podcast-importer-pro') !== false) || (strpos($package, 'api.github.com/repos/Podify-LLC/podify-podcast-importer-pro') !== false);
         if (!$is_plugin && !$matches_repo) return $reply;
         $rel = $this->release ?: $this->fetch_latest_release();
         if (!$rel || empty($rel['zip_url'])) return new \WP_Error('podify_updater', 'Invalid package');

@@ -2,6 +2,15 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.27
+### Title
+- UI Layout & Filter Alignment Fixes
+
+### Fixed
+- **UI**: Corrected Episodes page filter layout to a single row with improved vertical alignment.
+- **Maintenance**: Updated deprecated `WP_User_Query` arguments for WordPress 5.9+ compatibility.
+- **Updater**: Fixed repository URL mismatch to ensure correct updates for the Pro version.
+
 ## 1.0.26
 ### Title
 - Updater & UI Refinements

@@ -31,7 +31,7 @@ class AdminInit {
         ];
         $post_types = get_post_types(['public' => true], 'objects');
         $post_statuses = ['publish'=>'Publish','draft'=>'Draft','private'=>'Private','pending'=>'Pending'];
-        $authors = get_users(['who'=>'authors']);
+        $authors = get_users(['capability' => ['edit_posts']]);
         $tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'dashboard';
         if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'add_feed') {
             check_admin_referer('podify_add_feed');
