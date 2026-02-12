@@ -2,17 +2,24 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
-## 1.0.28
+## 1.0.29
 ### Title
-- Logo Integration & Brand Enhancement
+- Logo Integration, Mobile Responsiveness & Pro Branding
 
 ### Added
-- **UI**: Integrated `logo_cropped.png` into the admin sidebar for better brand visibility.
-- **UI**: Added `logo.png` to the dashboard hero banner with modern glassmorphism styling.
+- **UI**: Integrated `logo_cropped.png` into the admin sidebar and `logo.png` into the dashboard hero banner.
+- **UI**: Added "PRO" badges beside the version number in the Dashboard and Sidebar for premium branding.
+- **UI**: Implemented full mobile responsiveness for the admin dashboard, including a scrollable sidebar menu and stacked layouts for smaller screens.
+- **UI**: Added a smooth rotation animation to the "Check Now" button icon in the Dashboard.
 - **Updater**: Integrated plugin icons into the WordPress update core for a more professional update experience.
+
+### Changed
+- **UX**: Moved the "Updater checked successfully" notice from the top banner directly into the Updater Status widget for a cleaner interface.
+- **UX**: Added a "Checked!" confirmation badge next to the "Check Now" button after a manual update check.
 
 ### Fixed
 - **UI**: Refined sidebar layout and hero banner alignment for better responsiveness across screen sizes.
+- **UI**: Fixed filter layout on mobile devices to prevent horizontal overflow.
 
 ## 1.0.27
 ### Title

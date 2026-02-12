@@ -122,7 +122,7 @@ class AdminInit {
             check_admin_referer('podify_refresh_updater');
             wp_clean_plugins_cache();
             wp_update_plugins();
-            $notice = 'Updater checked successfully.';
+            // Removed global notice to show in widget instead
         }
         $feeds = \PodifyPodcast\Core\Database::get_feeds();
         $episodes = \PodifyPodcast\Core\Database::get_episodes(null, 10, 0);
@@ -163,7 +163,10 @@ class AdminInit {
             echo '<div class="podify-sidebar-header">';
                 echo '<div class="podify-sidebar-logo-container">';
                     echo '<div class="podify-sidebar-logo"><img src="' . \PODIFY_PODCAST_URL . 'assets/images/logo_cropped.png" alt="Podify"></div>';
-                    echo '<div class="podify-plugin-version">v'.\PODIFY_PODCAST_VERSION.'</div>';
+                    echo '<div class="podify-version-container">';
+                        echo '<div class="podify-plugin-version">v'.\PODIFY_PODCAST_VERSION.'</div>';
+                        echo '<span class="podify-pro-badge">PRO</span>';
+                    echo '</div>';
                 echo '</div>';
             echo '</div>';
             echo '<div class="podify-nav-links">';
@@ -190,7 +193,7 @@ class AdminInit {
         if ($tab === 'dashboard') {
             echo '<div class="podify-dashboard-hero">';
             echo '<div class="podify-hero-content">';
-            echo '<h2>Welcome to Podify Podcast Importer Pro <span class="podify-version-badge">v'.\PODIFY_PODCAST_VERSION.'</span></h2>';
+            echo '<h2>Welcome to Podify Podcast Importer Pro <span class="podify-version-badge">v'.\PODIFY_PODCAST_VERSION.'</span> <span class="podify-pro-badge hero-pro">PRO</span></h2>';
             echo '<p>The ultimate solution for importing and managing podcasts in WordPress. Automated imports, modern players, and seamless integration.</p>';
             echo '<a href="'.$base.'&tab=import" class="button button-primary button-hero" style="margin-top:15px">Import a Podcast</a>';
             echo '</div>';
@@ -245,7 +248,12 @@ class AdminInit {
             echo '<form method="post" style="margin-top:15px; border-top:1px solid #f0f0f1; padding-top:10px;">';
             echo '<input type="hidden" name="podify_action" value="refresh_updater">';
             wp_nonce_field('podify_refresh_updater');
+            echo '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">';
             echo '<button type="submit" class="button button-secondary button-small"><span class="dashicons dashicons-update" style="line-height:1.3"></span> Check Now</button>';
+            if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'refresh_updater') {
+                echo '<span style="color:#10b981; font-size:12px; font-weight:600;"><span class="dashicons dashicons-yes" style="font-size:16px; width:16px; height:16px; line-height:16px;"></span> Checked!</span>';
+            }
+            echo '</div>';
             echo '</form>';
 
             echo '</div>';

@@ -63,7 +63,33 @@
     background: #e0f2fe;
     display: inline-block;
     padding: 2px 12px;
-    border-radius: 99px;
+    border-radius: 99px 0 0 99px;
+}
+
+.podify-version-container {
+    display: flex;
+    align-items: center;
+}
+
+.podify-pro-badge {
+    background: #f59e0b;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 0 99px 99px 0;
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+}
+
+.podify-pro-badge.hero-pro {
+    background: #fff;
+    color: #1d4ed8;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    vertical-align: middle;
+    margin-left: 5px;
 }
 
 .podify-nav-links {
@@ -607,5 +633,67 @@
     font-size: 12px;
     height: 28px;
     padding: 0 4px;
+}
+
+.podify-dashboard-card form button .dashicons {
+    transition: transform 0.3s ease;
+}
+
+.podify-dashboard-card form button:hover .dashicons {
+    transform: rotate(180deg);
+}
+
+/* --- Responsive Layout --- */
+@media (max-width: 960px) {
+    .podify-admin-layout {
+        flex-direction: column;
+    }
+    .podify-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--podify-border);
+    }
+    .podify-nav-links {
+        display: flex;
+        overflow-x: auto;
+        padding: 10px 0;
+        white-space: nowrap;
+    }
+    .podify-nav-item {
+        padding: 10px 20px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+    }
+    .podify-nav-item.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--podify-primary);
+    }
+    .podify-content {
+        padding: 20px;
+    }
+    .podify-dashboard-hero {
+        padding: 30px;
+        flex-direction: column;
+        text-align: center;
+    }
+    .podify-hero-logo {
+        order: -1;
+    }
+    .podify-dashboard-hero h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .podify-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .podify-filters-grid {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .podify-filter-item {
+        width: 100%;
+    }
 }
 
