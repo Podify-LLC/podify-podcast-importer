@@ -161,8 +161,10 @@ class AdminInit {
         // Sidebar
         echo '<div class="podify-sidebar">';
             echo '<div class="podify-sidebar-header">';
-                echo '<div class="podify-plugin-name">Podify Importer</div>';
-                echo '<div class="podify-plugin-version">v'.\PODIFY_PODCAST_VERSION.'</div>';
+                echo '<div class="podify-sidebar-logo-container">';
+                    echo '<div class="podify-sidebar-logo"><img src="' . \PODIFY_PODCAST_URL . 'assets/images/logo_cropped.png" alt="Podify"></div>';
+                    echo '<div class="podify-plugin-version">v'.\PODIFY_PODCAST_VERSION.'</div>';
+                echo '</div>';
             echo '</div>';
             echo '<div class="podify-nav-links">';
                 $tabs = [
@@ -187,12 +189,12 @@ class AdminInit {
         echo '<div class="podify-content">';
         if ($tab === 'dashboard') {
             echo '<div class="podify-dashboard-hero">';
-            echo '<div>';
+            echo '<div class="podify-hero-content">';
             echo '<h2>Welcome to Podify Podcast Importer Pro <span class="podify-version-badge">v'.\PODIFY_PODCAST_VERSION.'</span></h2>';
             echo '<p>The ultimate solution for importing and managing podcasts in WordPress. Automated imports, modern players, and seamless integration.</p>';
             echo '<a href="'.$base.'&tab=import" class="button button-primary button-hero" style="margin-top:15px">Import a Podcast</a>';
             echo '</div>';
-            echo '<div style="font-size:48px; opacity:0.8;">🎙️</div>';
+            echo '<div class="podify-hero-logo"><img src="' . \PODIFY_PODCAST_URL . 'assets/images/logo.png" alt="Podify"></div>';
             echo '</div>';
             
             echo '<div class="podify-dashboard-grid">';
@@ -228,9 +230,9 @@ class AdminInit {
                      $context_msg = $msg;
                 }
 
-                echo '<p><strong>Status:</strong> <span style="color:'.esc_attr($st_color).';font-weight:700">'.esc_html(strtoupper($st)).'</span></p>';
+                echo '<div class="podify-status-badge-wrap"><span class="podify-status-badge" style="background-color:'.esc_attr($st_color).';">'.esc_html(strtoupper($st)).'</span></div>';
                 if ($context_msg) {
-                    echo '<p>'.esc_html($context_msg).'</p>';
+                    echo '<p class="podify-status-msg">'.esc_html($context_msg).'</p>';
                 }
                 
                 if (!empty($updater_status['time'])) {

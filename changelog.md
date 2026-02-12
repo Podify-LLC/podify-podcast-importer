@@ -2,6 +2,18 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.28
+### Title
+- Logo Integration & Brand Enhancement
+
+### Added
+- **UI**: Integrated `logo_cropped.png` into the admin sidebar for better brand visibility.
+- **UI**: Added `logo.png` to the dashboard hero banner with modern glassmorphism styling.
+- **Updater**: Integrated plugin icons into the WordPress update core for a more professional update experience.
+
+### Fixed
+- **UI**: Refined sidebar layout and hero banner alignment for better responsiveness across screen sizes.
+
 ## 1.0.27
 ### Title
 - UI Layout & Filter Alignment Fixes

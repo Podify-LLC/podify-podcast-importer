@@ -43,12 +43,17 @@
     border-bottom: 1px solid var(--podify-border);
 }
 
-.podify-plugin-name {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--podify-text);
-    margin-bottom: 8px;
-    line-height: 1.2;
+.podify-sidebar-logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.podify-sidebar-logo img {
+    max-width: 140px;
+    height: auto;
+    display: block;
 }
 
 .podify-plugin-version {
@@ -57,7 +62,7 @@
     font-weight: 600;
     background: #e0f2fe;
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 12px;
     border-radius: 99px;
 }
 
@@ -152,17 +157,36 @@
 
 /* --- Dashboard Hero --- */
 .podify-dashboard-hero {
-    background: linear-gradient(135deg, var(--podify-primary), #2563eb);
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    padding: 60px;
+    border-radius: 20px;
     color: #fff;
-    padding: 40px;
-    border-radius: var(--podify-radius);
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
     position: relative;
     overflow: hidden;
+    gap: 40px;
+}
+
+.podify-hero-content {
+    flex: 1;
+}
+
+.podify-hero-logo {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.podify-hero-logo img {
+    max-width: 180px;
+    height: auto;
+    display: block;
 }
 
 .podify-dashboard-hero::before {

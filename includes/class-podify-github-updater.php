@@ -220,6 +220,11 @@ class Podify_Github_Updater {
         $res->author = 'Podify';
         $res->homepage = 'https://github.com/Podify-LLC/podify-podcast-importer-pro';
         $res->download_link = $rel['zip_url'];
+        $res->icons = [
+            '1x' => \PODIFY_PODCAST_URL . 'assets/images/logo_cropped.png',
+            '2x' => \PODIFY_PODCAST_URL . 'assets/images/logo_cropped.png',
+            'default' => \PODIFY_PODCAST_URL . 'assets/images/logo_cropped.png',
+        ];
         $res->sections = [
             'description' => 'Advanced podcast importer with private GitHub updates.',
             'changelog' => $rel['body'] ?: '',
