@@ -124,6 +124,37 @@ class AdminInit {
             wp_update_plugins();
             // Removed global notice to show in widget instead
         }
+        if (isset($_GET['podify_action']) && $_GET['podify_action'] === 'refresh_updater_ajax') {
+            wp_clean_plugins_cache();
+            wp_update_plugins();
+            
+            // Re-calculate status for the response
+            $local_ver = \PODIFY_PODCAST_VERSION;
+            $updater_status = get_option('podify_updater_status', []);
+            $st = 'unknown';
+            $st_color = '#f0b849';
+            
+            if (!empty($updater_status) && is_array($updater_status)) {
+                $st = $updater_status['status'] ?? 'unknown';
+                $remote_ver = $updater_status['version'] ?? '';
+                if ($st === 'success' && $remote_ver) {
+                    if (version_compare($local_ver, $remote_ver, '>')) {
+                        $st = 'Dev'; $st_color = '#10b981';
+                    } elseif (version_compare($local_ver, $remote_ver, '<')) {
+                        $st = 'Update Available'; $st_color = '#f59e0b';
+                    } else {
+                        $st = 'Up to Date'; $st_color = '#10b981';
+                    }
+                } else {
+                    $st_color = ($st === 'success') ? '#10b981' : (($st === 'error') ? '#dc3232' : '#f0b849');
+                }
+            }
+            
+            wp_send_json_success([
+                'status_label' => $st,
+                'status_color' => $st_color
+            ]);
+        }
         $feeds = \PodifyPodcast\Core\Database::get_feeds();
         $episodes = \PodifyPodcast\Core\Database::get_episodes(null, 10, 0);
         $sync_url = esc_url_raw( rest_url('podify/v1/sync') );
@@ -199,14 +230,13 @@ class AdminInit {
         // Main Content Area
         echo '<div class="podify-content">';
         if ($tab === 'dashboard') {
-            echo '<div class="podify-dashboard-hero">';
-            echo '<div class="podify-hero-content">';
-            echo '<h2>Welcome to Podify Podcast Importer Pro <span class="podify-version-badge">v'.\PODIFY_PODCAST_VERSION.'</span> <span class="podify-pro-badge hero-pro">PRO</span></h2>';
-            echo '<p>The ultimate solution for importing and managing podcasts in WordPress. Automated imports, modern players, and seamless integration.</p>';
-            echo '<a href="'.$base.'&tab=import" class="button button-primary button-hero" style="margin-top:15px">Import a Podcast</a>';
-            echo '</div>';
-            echo '<div class="podify-hero-logo"><img src="' . \PODIFY_PODCAST_URL . 'assets/images/logo.png" alt="Podify"></div>';
-            echo '</div>';
+              echo '<div class="podify-dashboard-hero">';
+              echo '<div class="podify-hero-content">';
+              echo '<h2>Welcome to Podify Podcast Importer Pro <div class="podify-hero-badges"><span class="podify-version-badge">v'.\PODIFY_PODCAST_VERSION.'</span> <span class="podify-pro-badge hero-pro">PRO</span></div></h2>';
+              echo '<p>The ultimate solution for importing and managing podcasts in WordPress. Automated imports, modern players, and seamless integration.</p>';
+              echo '<a href="'.$base.'&tab=import" class="button button-primary button-hero">Import a Podcast</a>';
+              echo '</div>';
+              echo '</div>';
             
             echo '<div class="podify-dashboard-grid">';
             
@@ -240,23 +270,58 @@ class AdminInit {
             }
 
             echo '<div class="podify-updater-body">';
-                echo '<div class="podify-status-badge-wrap"><span class="podify-status-badge" style="background-color:'.esc_attr($st_color).'15; color:'.esc_attr($st_color).'; border:1px solid '.esc_attr($st_color).'30;">'.esc_html(strtoupper($st)).'</span></div>';
+                echo '<div class="podify-status-badge-wrap"><span class="podify-status-badge" id="podify-updater-status-label" style="background-color:'.esc_attr($st_color).'15; color:'.esc_attr($st_color).'; border:1px solid '.esc_attr($st_color).'30;">'.esc_html(strtoupper($st)).'</span></div>';
                 echo '<p class="podify-running-ver">Currently running v' . esc_html($local_ver) . '</p>';
                 
-                echo '<form method="post" class="podify-updater-form">';
-                    echo '<input type="hidden" name="podify_action" value="refresh_updater">';
-                    wp_nonce_field('podify_refresh_updater');
-                    echo '<div class="podify-updater-actions">';
-                        echo '<button type="submit" class="podify-button-modern">';
-                            echo '<span class="dashicons dashicons-update"></span>';
-                            echo '<span>Check Now</span>';
-                        echo '</button>';
-                        if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'refresh_updater') {
-                            echo '<span class="podify-check-success"><span class="dashicons dashicons-yes"></span></span>';
-                        }
-                    echo '</div>';
-                echo '</form>';
+                // Success indicator relocated
+                echo '<div id="podify-updater-success-msg" class="podify-check-success" style="display:none; margin-bottom:15px;"><span class="dashicons dashicons-yes"></span> Updated!</div>';
+
+                echo '<div class="podify-updater-actions">';
+                    echo '<button type="button" id="podify-check-updates-btn" class="podify-button-modern">';
+                        echo '<span class="dashicons dashicons-update"></span>';
+                        echo '<span>Check Now</span>';
+                    echo '</button>';
+                echo '</div>';
             echo '</div>';
+
+            echo '<script>
+            (function(){
+                const btn = document.getElementById("podify-check-updates-btn");
+                const successMsg = document.getElementById("podify-updater-success-msg");
+                const statusLabel = document.getElementById("podify-updater-status-label");
+                if(!btn) return;
+
+                btn.addEventListener("click", function(){
+                    if(btn.classList.contains("is-loading")) return;
+                    
+                    btn.classList.add("is-loading");
+                    successMsg.style.display = "none";
+                    
+                    // Call the REST API to refresh updater
+                    fetch(window.location.pathname + "?page=podify-podcast-importer&podify_action=refresh_updater_ajax", {
+                        method: "POST",
+                        headers: {
+                            "X-WP-Nonce": "' . wp_create_nonce('wp_rest') . '",
+                            "Content-Type": "application/json"
+                        }
+                    }).then(r => r.json()).then(data => {
+                        btn.classList.remove("is-loading");
+                        if(data.success) {
+                            successMsg.style.display = "inline-flex";
+                            if(data.status_label) {
+                                statusLabel.textContent = data.status_label.toUpperCase();
+                                statusLabel.style.color = data.status_color;
+                                statusLabel.style.backgroundColor = data.status_color + "15";
+                                statusLabel.style.borderColor = data.status_color + "30";
+                            }
+                            setTimeout(() => { successMsg.style.display = "none"; }, 5000);
+                        }
+                    }).catch(() => {
+                        btn.classList.remove("is-loading");
+                    });
+                });
+            })();
+            </script>';
 
             echo '</div>'; // End card
             

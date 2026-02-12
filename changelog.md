@@ -2,6 +2,21 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.30
+### Title
+- AJAX Updater & Hero Banner Refinement
+
+### Added
+- **Updater**: Implemented AJAX-based partial refresh for the "Check Now" button to avoid full page reloads.
+- **Updater**: Updated WordPress core updater to use `logo.png` for plugin icons.
+
+### Changed
+- **UI**: Removed the logo from the Dashboard Hero banner to reduce redundancy.
+- **UI**: Disabled the hover rotation animation on the "Check Now" button; animation now only triggers during active loading.
+- **UI**: Adjusted the Dashboard Hero banner with a centered layout and optimized padding.
+- **UI**: Relocated the update success indicator to a more logical position below the version status.
+- **UI**: Improved badge alignment within the hero heading for better responsiveness.
+
 ## 1.0.29
 ### Title
 - Logo Integration, Mobile Responsiveness & Pro Branding

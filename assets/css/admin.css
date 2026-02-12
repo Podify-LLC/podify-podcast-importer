@@ -260,19 +260,30 @@
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.podify-button-modern:hover .dashicons {
-    transform: rotate(180deg);
+.podify-button-modern .dashicons {
+    transition: transform 0.3s ease;
+}
+
+.podify-button-modern.is-loading .dashicons {
+    animation: podify-spin 1s linear infinite;
+}
+
+@keyframes podify-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .podify-check-success {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    gap: 8px;
+    padding: 8px 16px;
     background: #dcfce7;
-    color: #10b981;
-    border-radius: 50%;
+    color: #166534;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
     animation: podify-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -595,37 +606,18 @@
 /* --- Dashboard Hero --- */
 .podify-dashboard-hero {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    padding: 60px;
+    padding: 60px 40px;
     border-radius: 20px;
     color: #fff;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    text-align: center;
     box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
     position: relative;
     overflow: hidden;
-    gap: 40px;
-}
-
-.podify-hero-content {
-    flex: 1;
-}
-
-.podify-hero-logo {
-    flex-shrink: 0;
-    padding: 0;
-    background: none;
-    backdrop-filter: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.podify-hero-logo img {
-    max-width: 220px;
-    height: auto;
-    display: block;
 }
 
 .podify-dashboard-hero::before {
@@ -636,47 +628,110 @@
     pointer-events: none;
 }
 
+/* Background Decoration Animation */
+.podify-dashboard-hero::after {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    top: -300px;
+    right: -300px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.podify-hero-content {
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .podify-dashboard-hero h2 {
     color: #fff;
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0 0 12px 0;
-    line-height: 1.2;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0 0 12px 0 !important;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.podify-hero-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    vertical-align: middle;
 }
 
 .podify-dashboard-hero p {
-    font-size: 1.05rem;
-    opacity: 0.95;
-    margin: 0;
-    max-width: 600px;
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0 0 20px 0 !important;
+    max-width: 650px;
     line-height: 1.5;
+    font-weight: 400;
 }
 
 .podify-version-badge {
-    background: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.2);
     padding: 4px 12px;
     border-radius: 999px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
-    vertical-align: middle;
-    margin-left: 10px;
     letter-spacing: 0.5px;
-    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.1);
+    margin: 0 !important;
+}
+
+.podify-pro-badge.hero-pro {
+    background: #fff;
+    color: #2563eb;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0 !important;
 }
 
 .podify-dashboard-hero .button-hero {
     background: #fff !important;
-    color: var(--podify-primary) !important;
+    color: #2563eb !important;
     border: none !important;
-    font-weight: 600 !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-    padding: 12px 24px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    padding: 12px 28px !important;
     height: auto !important;
-    line-height: 1.4 !important;
-    border-radius: 8px !important;
+    line-height: 1 !important;
+    border-radius: 12px !important;
     font-size: 1rem !important;
-    margin-top: 20px !important;
+    margin-top: 5px !important;
+    transition: all 0.3s ease !important;
+    display: inline-flex !important;
+    align-items: center;
 }
+
+.podify-dashboard-hero .button-hero:hover {
+    background: #f8fafc !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+}
+
+/* Floating Animation for Logo on Mobile/Tablet */
+@media (max-width: 960px) {
+    .podify-dashboard-hero {
+        padding: 40px 20px;
+    }
+}
+
+
 
 /* --- Dashboard Grid --- */
 .podify-dashboard-grid {
