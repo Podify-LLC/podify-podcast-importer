@@ -151,34 +151,445 @@
     margin-top: 20px;
 }
 
+/* --- Modern Dashboard Card & Updater --- */
+.podify-dashboard-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.podify-dashboard-card h3 {
+    margin: 0 0 25px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.podify-dashboard-card h3 .dashicons {
+    color: #3b82f6;
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+}
+
+.podify-updater-card {
+    background: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
+
+.podify-updater-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.podify-status-badge-wrap {
+    margin-bottom: 20px;
+}
+
+.podify-status-badge {
+    padding: 8px 18px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+}
+
+.podify-running-ver {
+    font-size: 15px;
+    color: #64748b;
+    margin: 0 0 30px 0 !important;
+    font-weight: 500;
+}
+
+.podify-updater-form {
+    width: 100%;
+}
+
+.podify-updater-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Modern Button with Animation */
+.podify-button-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+    text-decoration: none;
+}
+
+.podify-button-modern:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+    color: #fff;
+}
+
+.podify-button-modern:active {
+    transform: translateY(0);
+}
+
+.podify-button-modern .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.podify-button-modern:hover .dashicons {
+    transform: rotate(180deg);
+}
+
+.podify-check-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #dcfce7;
+    color: #10b981;
+    border-radius: 50%;
+    animation: podify-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes podify-pop {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* --- Episodes Page Header --- */
+.podify-page-header {
+    background: #fff;
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.podify-page-header h1 {
+    margin: 0 0 8px 0 !important;
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.podify-page-header h1 .dashicons {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+    color: #2563eb;
+}
+
+.podify-page-header p {
+    margin: 0;
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+/* --- Unified Filter Bar --- */
+.podify-filters-bar {
+    background: #fff;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 25px;
+    border: 1px solid #e2e8f0;
+}
+
+.podify-filters-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.podify-filter-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.podify-filter-item label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.podify-filter-item input,
+.podify-filter-item select {
+    width: 100%;
+    height: 42px !important;
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 0 12px !important;
+    font-size: 14px !important;
+    background-color: #f8fafc !important;
+}
+
+.podify-filter-item input:focus,
+.podify-filter-item select:focus {
+    border-color: #2563eb !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}
+
+.align-self-end {
+    align-self: flex-end;
+}
+
+/* --- Modern Table Enhancements --- */
+.podify-table-card {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.podify-modern-table th:first-child,
+.podify-modern-table td:first-child {
+    padding-left: 30px;
+}
+
+.podify-modern-table th:last-child,
+.podify-modern-table td:last-child {
+    padding-right: 30px;
+}
+
+.podify-episode-row:hover {
+    background-color: #f8fafc;
+}
+
+.podify-badge {
+    background: #eff6ff;
+    color: #1d4ed8;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #dbeafe;
+}
+
+.podify-button-icon {
+    width: 36px;
+    height: 36px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.podify-button-icon:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.podify-button-icon .dashicons {
+    font-size: 18px;
+}
+
 /* --- Card Styles --- */
 .podify-card, 
 .podify-dashboard-card {
     background: var(--podify-card-bg);
     border: 1px solid var(--podify-border);
     border-radius: var(--podify-radius);
-    padding: 24px;
-    box-shadow: var(--podify-shadow);
+    padding: 32px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.podify-dashboard-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--podify-shadow-hover);
+.podify-updater-card h3 {
+    border-bottom: none !important;
+    margin-bottom: 30px !important;
+    font-size: 1.4rem !important;
+    color: #1e293b !important;
 }
 
-.podify-card h3,
-.podify-dashboard-card h3 {
-    margin-top: 0;
-    margin-bottom: 20px;
+.podify-updater-card h3 .dashicons {
+    color: #2563eb;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+}
+
+.podify-updater-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.podify-status-badge {
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.podify-running-ver {
     font-size: 1.1rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 400;
+}
+
+.podify-button-modern {
+    background: #2563eb;
+    color: #fff;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
     font-weight: 600;
-    color: var(--podify-text);
-    border-bottom: 1px solid var(--podify-border);
-    padding-bottom: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.podify-button-modern:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.podify-button-modern .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.podify-button-modern:hover .dashicons {
+    transform: rotate(360deg);
+}
+
+.podify-updater-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+.podify-check-success {
+    position: absolute;
+    right: -30px;
+    color: #10b981;
+}
+
+.podify-check-success .dashicons {
+    font-size: 24px;
+    width: 24px;    height: 24px;
+}
+
+/* --- Table Styles --- */
+.podify-modern-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 10px;
+}
+
+.podify-modern-table th {
+    padding: 16px 20px;
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.podify-modern-table td {
+    padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.podify-modern-table tr:last-child td {
+    border-bottom: none;
+}
+
+.podify-modern-table tr:hover {
+    background: #fbfcfe;
+}
+
+.podify-episode-row {
+    transition: background 0.2s ease;
+}
+
+.podify-episode-title {
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 14px;
+}
+
+.podify-episode-meta {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.podify-actions-cell {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.podify-button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.podify-button-icon:hover {
+    background: #e2e8f0;
+    color: #1e293b;
 }
 
 /* --- Dashboard Hero --- */
@@ -203,14 +614,16 @@
 
 .podify-hero-logo {
     flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 20px;
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
+    padding: 0;
+    background: none;
+    backdrop-filter: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .podify-hero-logo img {
-    max-width: 180px;
+    max-width: 220px;
     height: auto;
     display: block;
 }
@@ -635,15 +1048,74 @@
     padding: 0 4px;
 }
 
-.podify-dashboard-card form button .dashicons {
-    transition: transform 0.3s ease;
+
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 1200px) {
+    .podify-filters-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
 }
 
-.podify-dashboard-card form button:hover .dashicons {
-    transform: rotate(180deg);
+@media (max-width: 782px) {
+    .podify-admin-layout {
+        flex-direction: column;
+    }
+    
+    .podify-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 15px;
+    }
+    
+    .podify-nav-links {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+    
+    .podify-nav-item {
+        white-space: nowrap;
+    }
+    
+    .podify-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .podify-page-header {
+        padding: 20px;
+    }
+    
+    .podify-filters-bar {
+        padding: 15px;
+    }
+    
+    .podify-modern-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+/* Ensure Podify wrapper doesn't conflict with WP admin margin */
+.podify-admin-wrap-main {
+    margin-top: 20px;
 }
 
 /* --- Responsive Layout --- */
+@media (max-width: 1024px) {
+    .podify-dashboard-hero {
+        padding: 40px;
+        gap: 30px;
+    }
+    .podify-hero-logo img {
+        max-width: 180px;
+    }
+    .podify-dashboard-hero h2 {
+        font-size: 1.75rem;
+    }
+}
+
 @media (max-width: 960px) {
     .podify-admin-layout {
         flex-direction: column;
@@ -658,11 +1130,16 @@
         overflow-x: auto;
         padding: 10px 0;
         white-space: nowrap;
+        scrollbar-width: none; /* Firefox */
+    }
+    .podify-nav-links::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
     }
     .podify-nav-item {
         padding: 10px 20px;
         border-left: none;
         border-bottom: 3px solid transparent;
+        flex-shrink: 0;
     }
     .podify-nav-item.active {
         border-left-color: transparent;
@@ -672,15 +1149,32 @@
         padding: 20px;
     }
     .podify-dashboard-hero {
-        padding: 30px;
+        padding: 40px 30px;
         flex-direction: column;
         text-align: center;
+        align-items: center;
     }
     .podify-hero-logo {
         order: -1;
+        margin-bottom: 20px;
+    }
+    .podify-hero-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
     .podify-dashboard-hero h2 {
         font-size: 1.5rem;
+        justify-content: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .podify-version-badge {
+        margin: 0;
+    }
+    .podify-hero-logo img {
+        max-width: 200px;
     }
 }
 

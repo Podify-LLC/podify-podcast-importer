@@ -147,7 +147,15 @@ class AdminInit {
         .podify-status-pill { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:500; background:#dcfce7; color:#166534; }
         </style>';
         echo '<div class="wrap podify-admin-wrap-main">';
-        // echo '<h1>Podcast Importer</h1>'; // Hidden in modern layout
+        
+        // Tab specific headers
+        if ($tab === 'episodes') {
+            echo '<div class="podify-page-header">';
+            echo '<h1><span class="dashicons dashicons-playlist-audio"></span> Episodes Management</h1>';
+            echo '<p>View and manage all imported podcast episodes across your feeds.</p>';
+            echo '</div>';
+        }
+        
         $msg = isset($_GET['podify_msg']) ? sanitize_key($_GET['podify_msg']) : '';
         if ($msg === 'added') $notice = 'Feed added';
         if ($msg === 'removed') $notice = 'Feed removed';
@@ -202,61 +210,55 @@ class AdminInit {
             
             echo '<div class="podify-dashboard-grid">';
             
-            echo '<div class="podify-dashboard-card">';
+            echo '<div class="podify-dashboard-card podify-updater-card">';
             echo '<h3><span class="dashicons dashicons-update"></span> Updater Status</h3>';
             $updater_status = get_option('podify_updater_status', []);
+            
+            $st = 'unknown';
+            $st_color = '#f0b849';
+            $context_msg = 'No update activity recorded yet.';
+            $local_ver = \PODIFY_PODCAST_VERSION;
+
             if (!empty($updater_status) && is_array($updater_status)) {
                 $st = $updater_status['status'] ?? 'unknown';
-                $msg = $updater_status['message'] ?? '';
                 $remote_ver = $updater_status['version'] ?? '';
-                
-                // Determine context
-                $local_ver = \PODIFY_PODCAST_VERSION;
-                $context_msg = '';
                 
                 if ($st === 'success' && $remote_ver) {
                     if (version_compare($local_ver, $remote_ver, '>')) {
                         $st = 'Dev';
-                        $st_color = '#10b981'; // Green
-                        $context_msg = 'Local version (v'.$local_ver.') is ahead of remote (v'.$remote_ver.').';
+                        $st_color = '#10b981';
                     } elseif (version_compare($local_ver, $remote_ver, '<')) {
                         $st = 'Update Available';
-                        $st_color = '#f59e0b'; // Orange
-                        $context_msg = 'A new version (v'.$remote_ver.') is available.';
+                        $st_color = '#f59e0b';
                     } else {
                         $st = 'Up to Date';
-                        $st_color = '#3b82f6'; // Blue
-                        $context_msg = 'You are on the latest version (v'.$local_ver.').';
+                        $st_color = '#10b981'; // Match green in reference
                     }
                 } else {
-                     $st_color = ($st === 'success') ? '#46b450' : (($st === 'error') ? '#dc3232' : '#f0b849');
-                     $context_msg = $msg;
+                     $st_color = ($st === 'success') ? '#10b981' : (($st === 'error') ? '#dc3232' : '#f0b849');
                 }
+            }
 
-                echo '<div class="podify-status-badge-wrap"><span class="podify-status-badge" style="background-color:'.esc_attr($st_color).';">'.esc_html(strtoupper($st)).'</span></div>';
-                if ($context_msg) {
-                    echo '<p class="podify-status-msg">'.esc_html($context_msg).'</p>';
-                }
+            echo '<div class="podify-updater-body">';
+                echo '<div class="podify-status-badge-wrap"><span class="podify-status-badge" style="background-color:'.esc_attr($st_color).'15; color:'.esc_attr($st_color).'; border:1px solid '.esc_attr($st_color).'30;">'.esc_html(strtoupper($st)).'</span></div>';
+                echo '<p class="podify-running-ver">Currently running v' . esc_html($local_ver) . '</p>';
                 
-                if (!empty($updater_status['time'])) {
-                    echo '<p style="color:#64748b; font-size:12px; margin-top:5px">Last checked: '.date_i18n(get_option('date_format').' '.get_option('time_format'), $updater_status['time']).'</p>';
-                }
-            } else {
-                echo '<p style="color:#64748b">No update activity recorded yet.</p>';
-            }
-            
-            echo '<form method="post" style="margin-top:15px; border-top:1px solid #f0f0f1; padding-top:10px;">';
-            echo '<input type="hidden" name="podify_action" value="refresh_updater">';
-            wp_nonce_field('podify_refresh_updater');
-            echo '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">';
-            echo '<button type="submit" class="button button-secondary button-small"><span class="dashicons dashicons-update" style="line-height:1.3"></span> Check Now</button>';
-            if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'refresh_updater') {
-                echo '<span style="color:#10b981; font-size:12px; font-weight:600;"><span class="dashicons dashicons-yes" style="font-size:16px; width:16px; height:16px; line-height:16px;"></span> Checked!</span>';
-            }
+                echo '<form method="post" class="podify-updater-form">';
+                    echo '<input type="hidden" name="podify_action" value="refresh_updater">';
+                    wp_nonce_field('podify_refresh_updater');
+                    echo '<div class="podify-updater-actions">';
+                        echo '<button type="submit" class="podify-button-modern">';
+                            echo '<span class="dashicons dashicons-update"></span>';
+                            echo '<span>Check Now</span>';
+                        echo '</button>';
+                        if (!empty($_POST['podify_action']) && $_POST['podify_action'] === 'refresh_updater') {
+                            echo '<span class="podify-check-success"><span class="dashicons dashicons-yes"></span></span>';
+                        }
+                    echo '</div>';
+                echo '</form>';
             echo '</div>';
-            echo '</form>';
 
-            echo '</div>';
+            echo '</div>'; // End card
             
 
             
@@ -446,6 +448,11 @@ class AdminInit {
             // We use the CSS classes defined in admin.css now (podify-admin-header, podify-filters-grid)
             
             // 1. Top Header: Bulk Actions (Left) and Pagination Limit (Right)
+            echo '<div class="podify-page-header">';
+            echo '<h1>Episodes List</h1>';
+            echo '<p>Manage and organize your imported podcast episodes efficiently.</p>';
+            echo '</div>';
+
             echo '<div class="podify-admin-header">';
             
             // Bulk Actions
@@ -472,6 +479,7 @@ class AdminInit {
             echo '</div>'; // End header
 
             // 2. Filter Grid
+            echo '<div class="podify-filters-bar">';
             echo '<div class="podify-filters-grid">';
             
             // Search
@@ -497,14 +505,16 @@ class AdminInit {
             echo '<div class="podify-field"><div class="podify-checkbox-field"><label><input type="checkbox" id="podify-ep-audio" value="1"'.($has_audio_q? ' checked':'').'> Has audio only</label></div></div>';
             
             // Filter Button
-            echo '<div class="podify-field"><button class="button button-primary" id="podify-ep-apply">Filter</button></div>';
+            echo '<div class="podify-field"><button class="button button-primary podify-btn-modern" id="podify-ep-apply">Apply Filters</button></div>';
 
             echo '</div>'; // End filter grid
+            echo '</div>'; // End filters bar
 
             $offset_cur = 0;
+            echo '<div class="podify-table-card">';
             echo '<div class="podify-table-wrap">';
             echo '<div id="podify-table-loader" class="podify-loader-overlay"><div class="podify-loader-spinner"></div></div>';
-        echo '<table id="podify-admin-episodes" class="widefat" data-feed="'.$feed_filter.'" data-offset="'.$offset_cur.'" data-limit="'.$limit_ep.'" data-page="1" data-total-episodes="'.intval($total_episodes).'" data-total-pages="'.intval($total_pages).'"><thead><tr><th class="check-column"><input type="checkbox" id="podify-ep-select-all"></th><th>Title</th><th>Feed</th><th>Published</th><th>Audio URL</th><th>Image URL</th><th>Category</th></tr></thead><tbody>';
+        echo '<table id="podify-admin-episodes" class="podify-modern-table" data-feed="'.$feed_filter.'" data-offset="'.$offset_cur.'" data-limit="'.$limit_ep.'" data-page="1" data-total-episodes="'.intval($total_episodes).'" data-total-pages="'.intval($total_pages).'"><thead><tr><th class="check-column"><input type="checkbox" id="podify-ep-select-all"></th><th>Title</th><th>Feed</th><th>Published</th><th>Audio URL</th><th>Image URL</th><th>Category</th></tr></thead><tbody>';
             if ($episodes) {
                 foreach ($episodes as $e) {
                     $title = esc_html($e['title']);
@@ -531,6 +541,7 @@ class AdminInit {
             }
             echo '</tbody></table>';
             echo '</div>'; // End table wrap
+            echo '</div>'; // End table card
 
             // 3. Pagination
             echo '<div class="podify-pagination">';
