@@ -528,8 +528,10 @@ class AdminInit {
 
             // Items per page
             echo '<div class="podify-limit-group">';
-            echo '<span>Items per page:</span>';
+            echo '<div class="podify-limit-field">';
+            echo '<label for="podify-ep-limit">Items per page</label>';
             echo '<select id="podify-ep-limit"><option value="25"'.($limit_ep===25?' selected':'').'>25</option><option value="50"'.($limit_ep===50?' selected':'').'>50</option><option value="100"'.($limit_ep===100?' selected':'').'>100</option><option value="200"'.($limit_ep===200?' selected':'').'>200</option><option value="500"'.($limit_ep===500?' selected':'').'>500</option></select>';
+            echo '</div>';
             echo '</div>';
 
             echo '</div>'; // End header
@@ -552,7 +554,7 @@ class AdminInit {
 
             echo '<div class="podify-filter-item podify-field"><label>Order</label><select id="podify-ep-order"><option value="desc"'.($order_q==='desc'?' selected':'').'>Desc</option><option value="asc"'.($order_q==='asc'?' selected':'').'>Asc</option></select></div>';
 
-            echo '<div class="podify-filter-item podify-field"><div class="podify-checkbox-field"><label><input type="checkbox" id="podify-ep-audio" value="1"'.($has_audio_q? ' checked':'').'> Has audio only</label></div></div>';
+            echo '<div class="podify-filter-item podify-field"><div class="podify-checkbox-field"><label><input type="checkbox" id="podify-ep-audio" value="1"'.($has_audio_q? ' checked':'').'> Only episodes with audio</label></div></div>';
 
             echo '<div class="podify-filter-item podify-field align-self-end"><button type="button" class="podify-button-modern" id="podify-ep-apply"><span class="dashicons dashicons-filter"></span> Apply Filters</button></div>';
 

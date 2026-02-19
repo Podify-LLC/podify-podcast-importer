@@ -2,7 +2,7 @@
 # Podify Podcast Importer Pro
 
 - Contributors: podify
-- Version: 1.0.30
+- Version: 1.0.32
 - Requires at least: 6.0
 - Tested up to: 6.5
 
