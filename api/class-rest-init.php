@@ -64,24 +64,27 @@ class RestInit {
                 $feed_id = intval($req->get_param('feed_id'));
                 $limit = intval($req->get_param('limit'));
                 $offset = intval($req->get_param('offset'));
-                $category_id = intval($req->get_param('category_id'));
+                $cat_raw = $req->get_param('category_id');
+                $category_id = is_numeric($cat_raw) ? intval($cat_raw) : 0;
+                $uncategorized = is_string($cat_raw) && $cat_raw === 'uncategorized';
                 $q = (string)$req->get_param('q');
                 $has_audio = (bool)$req->get_param('has_audio');
                 $orderby = (string)$req->get_param('orderby');
                 $order = (string)$req->get_param('order');
 
                 // DEBUG LOGGING
-                // error_log(sprintf('Podify API /episodes: feed_id=%d limit=%d offset=%d cat=%d q=%s', $feed_id, $limit, $offset, $category_id, $q));
+                // error_log(sprintf('Podify API /episodes: feed_id=%d limit=%d offset=%d cat=%s q=%s', $feed_id, $limit, $offset, is_null($cat_raw)?'null':$cat_raw, $q));
 
                 if ($limit <= 0 || $limit > 500) $limit = 9;
                 if ($offset < 0) $offset = 0;
-                $use_adv = ($q !== '') || $has_audio || ($category_id > 0) || ($orderby !== '') || ($order !== '');
+                $use_adv = ($q !== '') || $has_audio || ($category_id > 0) || $uncategorized || ($orderby !== '') || ($order !== '');
                 if ($use_adv) {
                     $opts = [
                         'feed_id' => $feed_id ?: null,
                         'limit' => $limit,
                         'offset' => $offset,
                         'category_id' => $category_id ?: null,
+                        'uncategorized' => $uncategorized,
                         'q' => $q,
                         'has_audio' => $has_audio,
                         'orderby' => $orderby,

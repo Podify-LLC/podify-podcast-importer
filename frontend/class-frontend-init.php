@@ -271,6 +271,25 @@ class FrontendInit {
             }
         }
 
+        if ($feed_id && current_user_can('manage_options')) {
+            $feed_row = \PodifyPodcast\Core\Database::get_feed($feed_id);
+            $need_resync = false;
+            if (!$feed_row || empty($feed_row['last_sync'])) {
+                $need_resync = true;
+            } else {
+                $last_ts = strtotime($feed_row['last_sync']);
+                if (!$last_ts || (time() - $last_ts) > 3600) {
+                    $need_resync = true;
+                }
+            }
+            if ($need_resync) {
+                try {
+                    \PodifyPodcast\Core\Importer::resync_feed($feed_id);
+                } catch (\Throwable $e) {
+                }
+            }
+        }
+
         $episodes = \PodifyPodcast\Core\Database::get_episodes($feed_id ?: null, $limit, 0, $category_id ?: null);
 
         // Always output invisible debug info for troubleshooting

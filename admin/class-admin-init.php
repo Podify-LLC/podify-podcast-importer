@@ -481,7 +481,9 @@ class AdminInit {
         } elseif ($tab === 'episodes') {
             $feed_filter = isset($_GET['feed_id']) ? intval($_GET['feed_id']) : 0;
             $limit_ep = isset($_GET['limit']) ? max(25, min(500, intval($_GET['limit']))) : ($feed_filter ? 50 : 25);
-
+            $category_filter_raw = isset($_GET['category_id']) ? sanitize_text_field($_GET['category_id']) : '';
+            $category_filter_id = is_numeric($category_filter_raw) ? intval($category_filter_raw) : 0;
+            $uncategorized_filter = ($category_filter_raw === 'uncategorized');
 
             $search_q = isset($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
             $orderby_q = isset($_GET['orderby']) && in_array($_GET['orderby'], ['published','title'], true) ? $_GET['orderby'] : 'published';
@@ -495,6 +497,8 @@ class AdminInit {
                 // Wait, the table has data-offset logic but the initial render is always page 1?
                 // The JS handles pagination via AJAX. But the initial render needs to match params.
                 // The previous code had offset => 0.
+                'category_id' => $category_filter_id ?: null,
+                'uncategorized' => $uncategorized_filter,
                 'q' => $search_q,
                 'has_audio' => $has_audio_q,
                 'orderby' => $orderby_q,
@@ -541,13 +545,17 @@ class AdminInit {
 
             echo '<div class="podify-filter-item podify-field"><label>Search Episodes</label><input type="text" id="podify-ep-search" value="'.esc_attr($search_q).'" placeholder="Title or description..."></div>';
 
-            echo '<div class="podify-filter-item podify-field"><label>Category</label><select id="podify-ep-category"><option value="">All Categories</option>';
+            echo '<div class="podify-filter-item podify-field"><label>Category</label><select id="podify-ep-category">';
+            echo '<option value=""'.(($category_filter_id===0 && !$uncategorized_filter)?' selected':'').'>All Categories</option>';
             if ($bulk_cats) {
                 foreach ($bulk_cats as $bc) {
                     $lbl = (!$feed_filter && !empty($bc['feed_id'])) ? ('Feed '.$bc['feed_id'].': ') : '';
-                    echo '<option value="'.intval($bc['id']).'">'.esc_html($lbl . $bc['name']).'</option>';
+                    $cid = intval($bc['id']);
+                    $sel = ($cid === $category_filter_id && !$uncategorized_filter) ? ' selected' : '';
+                    echo '<option value="'.$cid.'"'.$sel.'>'.esc_html($lbl . $bc['name']).'</option>';
                 }
             }
+            echo '<option value="uncategorized"'.($uncategorized_filter?' selected':'').'>Uncategorized</option>';
             echo '</select></div>';
 
             echo '<div class="podify-filter-item podify-field"><label>Sort By</label><select id="podify-ep-orderby"><option value="published"'.($orderby_q==='published'?' selected':'').'>Published Date</option><option value="title"'.($orderby_q==='title'?' selected':'').'>Title</option></select></div>';

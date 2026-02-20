@@ -191,6 +191,7 @@ class Database {
         $limit = isset($opts['limit']) ? max(1, min(500, intval($opts['limit']))) : 10;
         $offset = isset($opts['offset']) ? max(0, intval($opts['offset'])) : 0;
         $category_id = isset($opts['category_id']) ? intval($opts['category_id']) : null;
+        $uncategorized = !empty($opts['uncategorized']);
         $q = isset($opts['q']) ? trim((string)$opts['q']) : '';
         $has_audio = !empty($opts['has_audio']);
         $orderby = isset($opts['orderby']) && in_array($opts['orderby'], ['published','title'], true) ? $opts['orderby'] : 'published';
@@ -203,6 +204,9 @@ class Database {
             $sql .= " INNER JOIN {$wpdb->prefix}podify_podcast_episode_categories ec ON ec.episode_id = e.id";
             $wheres[] = "ec.category_id = %d";
             $params[] = intval($category_id);
+        } elseif ($uncategorized) {
+            $sql .= " LEFT JOIN {$wpdb->prefix}podify_podcast_episode_categories ec ON ec.episode_id = e.id";
+            $wheres[] = "ec.category_id IS NULL";
         }
         if ($feed_id) {
             $wheres[] = "e.feed_id = %d";
@@ -239,6 +243,7 @@ class Database {
         global $wpdb;
         $feed_id = isset($opts['feed_id']) ? intval($opts['feed_id']) : null;
         $category_id = isset($opts['category_id']) ? intval($opts['category_id']) : null;
+        $uncategorized = !empty($opts['uncategorized']);
         $q = isset($opts['q']) ? trim((string)$opts['q']) : '';
         $has_audio = !empty($opts['has_audio']);
         $tbl = "{$wpdb->prefix}podify_podcast_episodes";
@@ -249,6 +254,9 @@ class Database {
             $sql .= " INNER JOIN {$wpdb->prefix}podify_podcast_episode_categories ec ON ec.episode_id = e.id";
             $wheres[] = "ec.category_id = %d";
             $params[] = intval($category_id);
+        } elseif ($uncategorized) {
+            $sql .= " LEFT JOIN {$wpdb->prefix}podify_podcast_episode_categories ec ON ec.episode_id = e.id";
+            $wheres[] = "ec.category_id IS NULL";
         }
         if ($feed_id) {
             $wheres[] = "e.feed_id = %d";
