@@ -38,6 +38,7 @@ class Database {
             image_url TEXT,
             duration VARCHAR(32),
             tags TEXT,
+            categories TEXT,
             published DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         ) $charset;");
@@ -90,6 +91,10 @@ class Database {
             $has_tags = $wpdb->get_var("SHOW COLUMNS FROM {$wpdb->prefix}podify_podcast_episodes LIKE 'tags'");
             if (!$has_tags) {
                 $wpdb->query("ALTER TABLE {$wpdb->prefix}podify_podcast_episodes ADD COLUMN tags TEXT NULL AFTER duration");
+            }
+            $has_categories = $wpdb->get_var("SHOW COLUMNS FROM {$wpdb->prefix}podify_podcast_episodes LIKE 'categories'");
+            if (!$has_categories) {
+                $wpdb->query("ALTER TABLE {$wpdb->prefix}podify_podcast_episodes ADD COLUMN categories TEXT NULL AFTER tags");
             }
         }
         // Ensure category tables exist
