@@ -2,6 +2,21 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
+## 1.0.34
+### Title
+- Per-Feed Customization & Enhanced Styling Control
+
+### Added
+- **UI**: Added a "Customize" toggle to each feed in the Schedules tab for individual feed styling.
+- **UI**: Integrated WordPress Color Pickers into the feed customization settings for card background, button background, and button text colors.
+- **UI**: Added per-feed overrides for "Read More" and "Load More" button text.
+- **Styling**: Implemented unique container-based dynamic CSS injection for shortcodes to prevent style bleeding between different feeds on the same page.
+- **Settings**: Added global default styling options in the main Settings tab.
+
+### Changed
+- **Frontend**: Updated shortcode rendering to prioritize feed-specific customization with a fallback to global settings.
+- **Admin**: Modernized the feed settings layout with a toggleable customization form for better organization.
+
 ## 1.0.30
 ### Title
 - AJAX Updater & Hero Banner Refinement

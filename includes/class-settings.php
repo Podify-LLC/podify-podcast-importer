@@ -7,6 +7,11 @@ class Settings {
         return [
             'sticky_player_enabled' => 0,
             'sticky_player_position' => 'bottom',
+            'read_more_text' => 'Read more',
+            'load_more_text' => 'Load more',
+            'card_bg_color' => '#ffffff',
+            'button_bg_color' => '#0b5bd3',
+            'button_text_color' => '#ffffff',
             'custom_css' => '',
         ];
     }

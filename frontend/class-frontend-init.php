@@ -192,6 +192,23 @@ class FrontendInit {
     public static function enqueue_assets_global() {
         $settings = \PodifyPodcast\Core\Settings::get();
         self::enqueue_assets();
+        
+        $dynamic_css = '';
+        if (!empty($settings['card_bg_color'])) {
+            $dynamic_css .= '.podify-episode-card { background-color: ' . esc_attr($settings['card_bg_color']) . ' !important; }';
+        }
+        if (!empty($settings['button_bg_color'])) {
+            $dynamic_css .= '.podify-read-more, .podify-load-more { background-color: ' . esc_attr($settings['button_bg_color']) . ' !important; border-color: ' . esc_attr($settings['button_bg_color']) . ' !important; }';
+            $dynamic_css .= '.podify-play-action-btn svg { color: ' . esc_attr($settings['button_bg_color']) . ' !important; }';
+        }
+        if (!empty($settings['button_text_color'])) {
+            $dynamic_css .= '.podify-read-more, .podify-load-more { color: ' . esc_attr($settings['button_text_color']) . ' !important; }';
+        }
+
+        if (!empty($dynamic_css)) {
+            wp_add_inline_style('podify_frontend', $dynamic_css);
+        }
+
         $css = isset($settings['custom_css']) ? (string)$settings['custom_css'] : '';
         if (trim($css) !== '') {
             wp_add_inline_style('podify_frontend', $css);
@@ -236,6 +253,27 @@ class FrontendInit {
         $category_id = $atts['category_id'] !== '' ? intval($atts['category_id']) : null;
         $settings = \PodifyPodcast\Core\Settings::get();
         $sticky_enabled = !empty($settings['sticky_player_enabled']);
+        
+        $read_more_text = !empty($settings['read_more_text']) ? $settings['read_more_text'] : 'Read more';
+        $load_more_text = !empty($settings['load_more_text']) ? $settings['load_more_text'] : 'Load more';
+        $card_bg = $settings['card_bg_color'] ?? '#ffffff';
+        $btn_bg = $settings['button_bg_color'] ?? '#0b5bd3';
+        $btn_txt = $settings['button_text_color'] ?? '#ffffff';
+
+        // Feed-specific overrides
+        if ($feed_id) {
+            $feed_row = \PodifyPodcast\Core\Database::get_feed($feed_id);
+            if ($feed_row && !empty($feed_row['options'])) {
+                $fopts = json_decode($feed_row['options'], true);
+                if ($fopts) {
+                    if (!empty($fopts['read_more_text'])) $read_more_text = $fopts['read_more_text'];
+                    if (!empty($fopts['load_more_text'])) $load_more_text = $fopts['load_more_text'];
+                    if (!empty($fopts['card_bg_color'])) $card_bg = $fopts['card_bg_color'];
+                    if (!empty($fopts['button_bg_color'])) $btn_bg = $fopts['button_bg_color'];
+                    if (!empty($fopts['button_text_color'])) $btn_txt = $fopts['button_text_color'];
+                }
+            }
+        }
         
         // Normalize layout
         $layout_raw = sanitize_key($atts['layout']);
@@ -321,6 +359,22 @@ class FrontendInit {
 
         $container_id = 'podify-ep-'.wp_generate_uuid4();
         
+        // Dynamic CSS for this specific feed
+        $feed_css = '';
+        if ($card_bg) {
+            $feed_css .= "#{$container_id} .podify-episode-card { background-color: " . esc_attr($card_bg) . " !important; }";
+        }
+        if ($btn_bg) {
+            $feed_css .= "#{$container_id} .podify-read-more, .podify-load-more[data-target=\"{$container_id}\"] { background-color: " . esc_attr($btn_bg) . " !important; border-color: " . esc_attr($btn_bg) . " !important; }";
+            $feed_css .= "#{$container_id} .podify-play-action-btn svg { color: " . esc_attr($btn_bg) . " !important; }";
+        }
+        if ($btn_txt) {
+            $feed_css .= "#{$container_id} .podify-read-more, .podify-load-more[data-target=\"{$container_id}\"] { color: " . esc_attr($btn_txt) . " !important; }";
+        }
+        if ($feed_css) {
+            wp_add_inline_style('podify_frontend', $feed_css);
+        }
+
         $html = $debug_info . '<div id="'.$container_id.'" class="podify-episodes-grid podify-cols-'.$cols.'" data-limit="'.$limit.'"'.($feed_id?' data-feed="'.$feed_id.'"':'').($category_id?' data-category="'.$category_id.'"':'').' data-offset="'.count($episodes).'" data-layout="'.$layout.'">';
         
         foreach ($episodes as $e) {
@@ -453,7 +507,7 @@ class FrontendInit {
                 }
                 
                 $html .= '<div class="podify-episode-actions">';
-                $html .= '<a class="podify-read-more" href="'.esc_url($permalink).'">Read more <i class="fa fa-angle-right"></i></a>';
+                $html .= '<a class="podify-read-more" href="'.esc_url($permalink).'">'.esc_html($read_more_text).' <i class="fa fa-angle-right"></i></a>';
                 
                 if ($audio && $sticky_enabled) {
                     $html .= '<button class="podify-play-action-btn" aria-label="Play"><svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>';
@@ -465,7 +519,7 @@ class FrontendInit {
                 
             } else {
                 // Classic Layout Structure
-                $html .= '<a class="podify-read-more" href="'.esc_url($permalink).'">Read more <i class="fa fa-angle-right"></i></a>';
+                $html .= '<a class="podify-read-more" href="'.esc_url($permalink).'">'.esc_html($read_more_text).' <i class="fa fa-angle-right"></i></a>';
                 
                 $html .= '<div class="podify-episode-actions">';
                 if ($audio && $sticky_enabled) {
@@ -492,7 +546,7 @@ class FrontendInit {
         $remaining = max(0, intval($total_count) - count($episodes));
         
         if ($remaining > 0) {
-            $html .= '<div class="podify-load-more-wrap" style="text-align:center;margin-top:16px;"><button class="podify-load-more button" data-target="'.$container_id.'">Load more</button></div>';
+            $html .= '<div class="podify-load-more-wrap" style="text-align:center;margin-top:16px;"><button class="podify-load-more button" data-target="'.$container_id.'">'.esc_html($load_more_text).'</button></div>';
         }
         
         $html .= '<script>(function(){/*Safe*/';
@@ -500,6 +554,8 @@ class FrontendInit {
         $html .= 'var TOTAL_COUNT='.wp_json_encode(intval($total_count)).';';
         $html .= 'var LAYOUT='.wp_json_encode($layout).';';
         $html .= 'var STICKY_ENABLED='.wp_json_encode($sticky_enabled).';';
+        $html .= 'var READ_MORE_TEXT='.wp_json_encode($read_more_text).';';
+        $html .= 'var LOAD_MORE_TEXT='.wp_json_encode($load_more_text).';';
         $html .= 'var BASE_URL='.wp_json_encode( trailingslashit(home_url()) ).';';
         $html .= 'function parseJSONSafe(r){return r.text().then(function(t){ if(!t||t.trim().charAt(0)==="<"){console.warn("Podify: Received HTML/Invalid JSON", t.substring(0,100));return null;}try{return JSON.parse(t);}catch(_e){console.error("Podify JSON Parse Error:", _e); return null;}});}';
         
@@ -520,7 +576,7 @@ class FrontendInit {
         $html .= '        var t = card.getAttribute("data-title") || "";';
         $html .= '        var slug = t.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");';
         $html .= '        var url = BASE_URL + slug + "/";';
-        $html .= '        link = document.createElement("a"); link.className = "podify-read-more"; link.innerHTML = "Read more <i class=\'fa fa-angle-right\'></i>"; link.href = url;';
+        $html .= '        link = document.createElement("a"); link.className = "podify-read-more"; link.innerHTML = READ_MORE_TEXT + " <i class=\'fa fa-angle-right\'></i>"; link.href = url;';
         $html .= '        var actions = card.querySelector(".podify-episode-actions");';
         $html .= '        var body = card.querySelector(".podify-episode-body");';
         $html .= '        if(isModern && actions){ actions.insertBefore(link, actions.firstChild); }';
@@ -569,7 +625,7 @@ class FrontendInit {
         $html .= '        h+="<div class=\"podify-episode-body\"><div class=\"podify-episode-top\">"+cth+"<h3 class=\"podify-episode-title\"><a href=\""+pm+"\" class=\"podify-episode-link\">"+t+"</a></h3></div>";';
         $html .= '        if(de)h+="<div class=\"podify-episode-desc podify-clamp-2\">"+de+"</div>";';
         $html .= '        if(ml)h+="<div class=\"podify-episode-meta\">"+ml+"</div>";';
-        $html .= '        h+="<div class=\"podify-episode-actions\"><a class=\"podify-read-more\" href=\""+pm+"\">Read more <i class=\"fa fa-angle-right\"></i></a>";';
+        $html .= '        h+="<div class=\"podify-episode-actions\"><a class=\"podify-read-more\" href=\""+pm+"\">"+READ_MORE_TEXT+" <i class=\"fa fa-angle-right\"></i></a>";';
         $html .= '        if(au && STICKY_ENABLED)h+="<button class=\"podify-play-action-btn\" aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" width=\"36\" height=\"36\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button>";';
         $html .= '        if(dur && STICKY_ENABLED)h+="<span class=\"podify-episode-duration\">"+dur+"</span>";';
         $html .= '        h+="</div></div>";';
@@ -577,7 +633,7 @@ class FrontendInit {
         $html .= '        h+="<div class=\"podify-episode-media\">"+(im?"<img src=\""+im+"\" alt=\""+t.replace(/"/g,"&quot;")+"\" loading=\"lazy\" style=\"width:100%;height:100%;object-fit:cover;\">":"<div class=\"podify-episode-placeholder\"></div>")+"</div>";';
         $html .= '        h+="<div class=\"podify-episode-body\"><div class=\"podify-episode-top\"><h3 class=\"podify-episode-title\"><a href=\""+pm+"\" class=\"podify-episode-link\">"+t+"</a></h3></div>"+cth;';
         $html .= '        if(de)h+="<div class=\"podify-episode-desc podify-clamp-2\">"+de+"</div>";';
-        $html .= '        h+="<a class=\"podify-read-more\" href=\""+pm+"\">Read more <i class=\"fa fa-angle-right\"></i></a>";';
+        $html .= '        h+="<a class=\"podify-read-more\" href=\""+pm+"\">"+READ_MORE_TEXT+" <i class=\"fa fa-angle-right\"></i></a>";';
         $html .= '        h+="<div class=\"podify-episode-actions\">";';
         $html .= '        if(au && STICKY_ENABLED)h+="<button class=\"podify-play-action-btn\" aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" width=\"36\" height=\"36\" fill=\"currentColor\"><path d=\"M8 5v14l11-7z\"/></svg></button>";';
         $html .= '        if(dur && STICKY_ENABLED)h+="<span class=\"podify-episode-duration\">"+dur+"</span>";';

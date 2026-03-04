@@ -16,6 +16,9 @@ class AdminInit {
     public static function enqueue($hook) {
         if (isset($_GET['page']) && $_GET['page'] === self::SLUG) {
             wp_enqueue_style('podify_admin', \PODIFY_PODCAST_URL . 'assets/css/admin.css', [], \PODIFY_PODCAST_VERSION);
+            wp_enqueue_style('wp-color-picker');
+            wp_enqueue_script('wp-color-picker');
+            wp_enqueue_script('jquery');
             wp_enqueue_script('wp-api');
         }
     }
@@ -48,6 +51,11 @@ class AdminInit {
                     'import_tags' => !empty($_POST['import_tags']) ? 1 : 0,
                     'featured_image' => esc_url_raw($_POST['featured_image'] ?? ''),
                     'append_episode_number' => !empty($_POST['append_episode_number']) ? 1 : 0,
+                    'read_more_text' => sanitize_text_field($_POST['read_more_text'] ?? ''),
+                    'load_more_text' => sanitize_text_field($_POST['load_more_text'] ?? ''),
+                    'card_bg_color' => sanitize_hex_color($_POST['card_bg_color'] ?? ''),
+                    'button_bg_color' => sanitize_hex_color($_POST['button_bg_color'] ?? ''),
+                    'button_text_color' => sanitize_hex_color($_POST['button_text_color'] ?? ''),
                 ];
                 $new_id = \PodifyPodcast\Core\Database::add_feed($url, $options);
                 if ($new_id) {
@@ -81,6 +89,11 @@ class AdminInit {
                     'append_episode_number' => !empty($_POST['append_episode_number']) ? 1 : 0,
                     'import_categories' => !empty($_POST['import_categories']) ? 1 : 0,
                     'import_tags' => !empty($_POST['import_tags']) ? 1 : 0,
+                    'read_more_text' => sanitize_text_field($_POST['read_more_text'] ?? ''),
+                    'load_more_text' => sanitize_text_field($_POST['load_more_text'] ?? ''),
+                    'card_bg_color' => sanitize_hex_color($_POST['card_bg_color'] ?? ''),
+                    'button_bg_color' => sanitize_hex_color($_POST['button_bg_color'] ?? ''),
+                    'button_text_color' => sanitize_hex_color($_POST['button_text_color'] ?? ''),
                 ];
                 \PodifyPodcast\Core\Database::update_feed_options($id, $options);
                 \PodifyPodcast\Core\Cron\CronInit::clear_feed($id);
@@ -93,6 +106,11 @@ class AdminInit {
             $data = [
                 'sticky_player_enabled' => !empty($_POST['sticky_player_enabled']) ? 1 : 0,
                 'sticky_player_position' => sanitize_text_field($_POST['sticky_player_position'] ?? 'bottom'),
+                'read_more_text' => sanitize_text_field($_POST['read_more_text'] ?? 'Read more'),
+                'load_more_text' => sanitize_text_field($_POST['load_more_text'] ?? 'Load more'),
+                'card_bg_color' => sanitize_hex_color($_POST['card_bg_color'] ?? '#ffffff'),
+                'button_bg_color' => sanitize_hex_color($_POST['button_bg_color'] ?? '#0b5bd3'),
+                'button_text_color' => sanitize_hex_color($_POST['button_text_color'] ?? '#ffffff'),
                 'custom_css' => isset($_POST['custom_css']) ? sanitize_textarea_field($_POST['custom_css']) : '',
             ];
             \PodifyPodcast\Core\Settings::update($data);
@@ -388,12 +406,21 @@ class AdminInit {
             echo '<div class="podify-field"><label>Global featured image URL</label><input type="url" name="featured_image" placeholder="https://example.com/image.jpg"></div>';
             echo '<div class="podify-field"><label><input type="checkbox" name="append_episode_number" value="1"> Append episode number to post title</label></div>';
             echo '</div>';
+            echo '<div class="podify-card">';
+            echo '<h3>Customization (Feed Specific)</h3>';
+            echo '<div class="podify-field"><label>Read More Button Text</label><input type="text" name="read_more_text" placeholder="Read more"></div>';
+            echo '<div class="podify-field"><label>Load More Button Text</label><input type="text" name="load_more_text" placeholder="Load more"></div>';
+            echo '<div class="podify-field"><label>Card Background Color</label><input type="text" name="card_bg_color" class="podify-color-picker" value="#ffffff"></div>';
+            echo '<div class="podify-field"><label>Button Background Color</label><input type="text" name="button_bg_color" class="podify-color-picker" value="#0b5bd3"></div>';
+            echo '<div class="podify-field"><label>Button Text Color</label><input type="text" name="button_text_color" class="podify-color-picker" value="#ffffff"></div>';
+            echo '</div>';
             echo '</div>';
             echo '<div class="podify-actions"><button class="button button-primary">Add Import</button></div></form>';
+            echo '<script>(function($){ $(function(){ $(".podify-color-picker").wpColorPicker(); }); })(jQuery);</script>';
         } elseif ($tab === 'scheduled') {
             echo '<div class="podify-table-card">';
             echo '<table class="podify-modern-table">';
-            echo '<thead><tr><th style="width:80px">ID</th><th>Feed Source</th><th style="width:220px">Interval</th><th style="width:380px">Actions</th></tr></thead>';
+            echo '<thead><tr><th style="width:80px">ID</th><th>Feed Source</th><th style="width:380px">Actions</th></tr></thead>';
             echo '<tbody>';
             if ($feeds) {
                 foreach ($feeds as $f) {
@@ -403,27 +430,20 @@ class AdminInit {
                     $opts = [];
                     if (!empty($full['options'])) { $opts = json_decode($full['options'], true) ?: []; }
                     $interval_cur = isset($opts['interval']) ? $opts['interval'] : 'hourly';
+                    $read_more = $opts['read_more_text'] ?? '';
+                    $load_more = $opts['load_more_text'] ?? '';
+                    $card_bg = $opts['card_bg_color'] ?? '';
+                    $btn_bg = $opts['button_bg_color'] ?? '';
+                    $btn_txt = $opts['button_text_color'] ?? '';
                     
                     echo '<tr>';
                     echo '<td><span class="podify-badge">#'.$id.'</span></td>';
                     echo '<td><div class="podify-url-text" title="'.$url.'">'.$url.'</div></td>';
                     
                     echo '<td>';
-                    echo '<form method="post" style="display:flex; gap:6px; align-items:center;">';
-                    echo '<input type="hidden" name="podify_action" value="update_feed_options"><input type="hidden" name="feed_id" value="'.$id.'">';
-                    wp_nonce_field('podify_update_feed');
-                    echo '<select name="interval" style="max-width:130px; font-size:12px; height:30px; line-height:1; min-height:30px; border-color:#cbd5e1; border-radius:4px;">';
-                    foreach ($intervals as $key=>$label) {
-                        $sel = $interval_cur===$key ? ' selected' : '';
-                        echo '<option value="'.esc_attr($key).'"'.$sel.'>'.esc_html($label).'</option>';
-                    }
-                    echo '</select> ';
-                    echo '<button class="button button-small" style="height:30px; line-height:28px;">Save</button></form>';
-                    echo '</td>';
-                    
-                    echo '<td>';
                     echo '<div class="podify-actions-cell">';
                     echo '<a class="button button-small" href="'.$base.'&tab=episodes&feed_id='.$id.'">Episodes</a> ';
+                    echo '<button class="button button-small podify-toggle-customization" data-id="'.$id.'">Customize</button> ';
                     echo '<button class="button button-small podify-sync" data-id="'.$id.'"><span class="dashicons dashicons-update" style="font-size:14px;line-height:1.8;margin-right:2px"></span> Sync</button> ';
                     echo '<button class="button button-small podify-resync" data-id="'.$id.'">Force</button> ';
                     echo '<form method="post" style="display:inline"><input type="hidden" name="podify_action" value="remove_feed"><input type="hidden" name="feed_id" value="'.$id.'">';
@@ -432,12 +452,75 @@ class AdminInit {
                     echo '<div class="podify-progress-wrap" data-id="'.$id.'" style="width:100px; height:20px; margin-left:5px;"><div class="podify-progress-bar"></div><div class="podify-progress-text" style="font-size:9px; line-height:20px;"></div></div>';
                     echo '</div>'; 
                     echo '</td></tr>';
+
+                    // Customization Row
+                    echo '<tr id="podify-customization-'.$id.'" class="podify-customization-row" style="display:none; background:#f8fafc;">';
+                    echo '<td colspan="3" style="padding:20px; border-bottom:2px solid #e2e8f0;">';
+                    echo '<form method="post" class="podify-feed-options-form">';
+                    echo '<input type="hidden" name="podify_action" value="update_feed_options"><input type="hidden" name="feed_id" value="'.$id.'">';
+                    wp_nonce_field('podify_update_feed');
+                    
+                    echo '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">';
+                    
+                    echo '<div>';
+                    echo '<label style="display:block; margin-bottom:5px; font-weight:600;">Import Interval</label>';
+                    echo '<select name="interval" style="width:100%;">';
+                    foreach ($intervals as $key=>$label) {
+                        $sel = $interval_cur===$key ? ' selected' : '';
+                        echo '<option value="'.esc_attr($key).'"'.$sel.'>'.esc_html($label).'</option>';
+                    }
+                    echo '</select>';
+                    echo '</div>';
+
+                    echo '<div>';
+                    echo '<label style="display:block; margin-bottom:5px; font-weight:600;">Read More Text</label>';
+                    echo '<input type="text" name="read_more_text" value="'.esc_attr($read_more).'" placeholder="Default" style="width:100%;">';
+                    echo '</div>';
+
+                    echo '<div>';
+                    echo '<label style="display:block; margin-bottom:5px; font-weight:600;">Load More Text</label>';
+                    echo '<input type="text" name="load_more_text" value="'.esc_attr($load_more).'" placeholder="Default" style="width:100%;">';
+                    echo '</div>';
+
+                    echo '<div>';
+                    echo '<label style="display:block; margin-bottom:5px; font-weight:600;">Card BG Color</label>';
+                    echo '<input type="text" name="card_bg_color" class="podify-color-picker" value="'.esc_attr($card_bg).'">';
+                    echo '</div>';
+
+                    echo '<div>';
+                    echo '<label style="display:block; margin-bottom:5px; font-weight:600;">Button BG Color</label>';
+                    echo '<input type="text" name="button_bg_color" class="podify-color-picker" value="'.esc_attr($btn_bg).'">';
+                    echo '</div>';
+
+                    echo '<div>';
+                    echo '<label style="display:block; margin-bottom:5px; font-weight:600;">Button Text Color</label>';
+                    echo '<input type="text" name="button_text_color" class="podify-color-picker" value="'.esc_attr($btn_txt).'">';
+                    echo '</div>';
+
+                    echo '</div>'; // End grid
+
+                    echo '<div style="margin-top:20px; text-align:right;">';
+                    echo '<button class="button button-primary">Save Changes</button>';
+                    echo '</div>';
+                    
+                    echo '</form></td></tr>';
                 }
             } else {
-                echo '<tr><td colspan="4" style="text-align:center; padding:40px; color:#64748b;">No scheduled imports found. <a href="'.$base.'&tab=import">Add one now</a>.</td></tr>';
+                echo '<tr><td colspan="3" style="text-align:center; padding:40px; color:#64748b;">No scheduled imports found. <a href="'.$base.'&tab=import">Add one now</a>.</td></tr>';
             }
             echo '</tbody></table>';
             echo '</div>';
+            echo '<script>(function($){';
+            echo '$(function(){ $(".podify-color-picker").wpColorPicker(); });';
+            echo 'document.addEventListener("click",function(e){';
+            echo 'var t=e.target.closest(".podify-toggle-customization");';
+            echo 'if(t){ var id=t.getAttribute("data-id"); var row=document.getElementById("podify-customization-"+id); if(row) { ';
+            echo '  var isHidden = (row.style.display==="none"); ';
+            echo '  row.style.display=(isHidden?"table-row":"none"); ';
+            echo '  if(isHidden) { $(row).find(".podify-color-picker").each(function(){ if(!$(this).next().hasClass("wp-picker-container")) $(this).wpColorPicker(); }); }';
+            echo '} }';
+            echo '});';
+            echo '})(jQuery);</script>';
             echo '<script>(function(){';
             echo 'const SYNC_URL = '.wp_json_encode($sync_url).';';
             echo 'const RESYNC_URL = '.wp_json_encode($resync_url).';';
@@ -743,12 +826,24 @@ class AdminInit {
             wp_nonce_field('podify_save_settings');
             $enabled = !empty($settings['sticky_player_enabled']);
             $position = !empty($settings['sticky_player_position']) ? $settings['sticky_player_position'] : 'bottom';
+            $read_more_text = !empty($settings['read_more_text']) ? $settings['read_more_text'] : 'Read more';
+            $load_more_text = !empty($settings['load_more_text']) ? $settings['load_more_text'] : 'Load more';
+            $card_bg = !empty($settings['card_bg_color']) ? $settings['card_bg_color'] : '#ffffff';
+            $btn_bg = !empty($settings['button_bg_color']) ? $settings['button_bg_color'] : '#0b5bd3';
+            $btn_txt = !empty($settings['button_text_color']) ? $settings['button_text_color'] : '#ffffff';
+
             echo '<div class="podify-field"><label><input type="checkbox" name="sticky_player_enabled" value="1"'.($enabled?' checked':'').'> Enable sticky player</label></div>';
             echo '<div class="podify-field"><label>Position</label><select name="sticky_player_position"><option value="bottom"'.($position==='bottom'?' selected':'').'>Bottom</option><option value="top"'.($position==='top'?' selected':'').'>Top</option></select></div>';
+            echo '<div class="podify-field"><label>Read More Button Text</label><input type="text" name="read_more_text" value="'.esc_attr($read_more_text).'" placeholder="Read more"></div>';
+            echo '<div class="podify-field"><label>Load More Button Text</label><input type="text" name="load_more_text" value="'.esc_attr($load_more_text).'" placeholder="Load more"></div>';
+            echo '<div class="podify-field"><label>Card Background Color</label><input type="text" name="card_bg_color" class="podify-color-picker" value="'.esc_attr($card_bg).'"></div>';
+            echo '<div class="podify-field"><label>Button Background Color</label><input type="text" name="button_bg_color" class="podify-color-picker" value="'.esc_attr($btn_bg).'"></div>';
+            echo '<div class="podify-field"><label>Button Text Color</label><input type="text" name="button_text_color" class="podify-color-picker" value="'.esc_attr($btn_txt).'"></div>';
             $custom_css = !empty($settings['custom_css']) ? $settings['custom_css'] : '';
             echo '<div class="podify-field"><label>Custom CSS for Episode Cards</label><textarea name="custom_css" rows="12" placeholder="/* Add CSS to style the episode cards and category pills */" style="height: 125px;">'.esc_textarea($custom_css).'</textarea><p class="description">Control layout per shortcode: [podify_podcast_list layout="classic|modern"]. Target elements like .podify-episode-card, .podify-episode-title, .podify-category-pill. Your CSS is injected sitewide.</p></div>';
             echo '<div class="podify-actions"><button class="button button-primary">Save Settings</button></div></form>';
             echo '</div>';
+            echo '<script>(function($){ $(function(){ $(".podify-color-picker").wpColorPicker(); }); })(jQuery);</script>';
             echo '<div class="podify-card"><h3>Tools</h3>';
             echo '<form method="post"><input type="hidden" name="podify_action" value="clear_cache">';
             wp_nonce_field('podify_clear_cache');
