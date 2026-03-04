@@ -10,8 +10,14 @@ class Settings {
             'read_more_text' => 'Read more',
             'load_more_text' => 'Load more',
             'card_bg_color' => '#ffffff',
+            'card_bg_color_2' => '',
+            'card_bg_gradient_direction' => 'to bottom',
             'button_bg_color' => '#0b5bd3',
             'button_text_color' => '#ffffff',
+            'load_more_bg_color' => '#0b5bd3',
+            'load_more_text_color' => '#ffffff',
+            'load_more_bg_hover_color' => '#0948a8',
+            'load_more_text_hover_color' => '#ffffff',
             'custom_css' => '',
         ];
     }

@@ -168,7 +168,23 @@ class RestInit {
                             'tags' => is_string($r['tags']) ? $r['tags'] : '',
                             'published' => is_string($r['published']) ? $r['published'] : '',
                             'permalink' => $permalink,
-                            'categories' => array_map(function($c){ return ['id'=>intval($c['id']),'name'=>is_string($c['name'])?$c['name']:'','slug'=>is_string($c['slug'])?$c['slug']:'']; }, \PodifyPodcast\Core\Database::get_episode_categories(intval($r['id']))),
+                            'categories' => array_map(function($c){ 
+                                $full = \PodifyPodcast\Core\Database::get_category(intval($c['id']));
+                                return [
+                                    'id'=>intval($c['id']),
+                                    'name'=>is_string($c['name'])?$c['name']:'',
+                                    'slug'=>is_string($c['slug'])?$c['slug']:'',
+                                    'colors' => $full ? [
+                                        'card_bg_color' => $full['card_bg_color'],
+                                        'button_bg_color' => $full['button_bg_color'],
+                                        'button_text_color' => $full['button_text_color'],
+                                        'load_more_bg_color' => $full['load_more_bg_color'],
+                                        'load_more_text_color' => $full['load_more_text_color'],
+                                        'load_more_bg_hover_color' => $full['load_more_bg_hover_color'],
+                                        'load_more_text_hover_color' => $full['load_more_text_hover_color'],
+                                    ] : null
+                                ]; 
+                            }, \PodifyPodcast\Core\Database::get_episode_categories(intval($r['id']))),
                         ];
                     }
                 }
@@ -198,10 +214,14 @@ class RestInit {
                 $id = intval($req->get_param('id'));
                 $name = (string)$req->get_param('name');
                 $feed_id = $req->get_param('feed_id');
+                $colors = $req->get_param('colors');
+                
                 if (!$id || trim($name) === '') return ['ok'=>false,'message'=>'Invalid payload'];
                 
                 $fid = is_numeric($feed_id) ? intval($feed_id) : null;
-                $ok = \PodifyPodcast\Core\Database::update_category($id, $name, $fid);
+                $color_data = is_array($colors) ? $colors : [];
+                
+                $ok = \PodifyPodcast\Core\Database::update_category($id, $name, $fid, $color_data);
                 if (!$ok) {
                     $err = \PodifyPodcast\Core\Database::last_error();
                     return ['ok' => false, 'message' => $err ?: 'Update failed'];

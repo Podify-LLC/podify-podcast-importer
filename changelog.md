@@ -2,7 +2,44 @@
 
 All notable changes to **Podify Podcast Importer Pro** are documented here.
 
-## 1.0.34
+## 1.0.38
+### Title
+- Admin Dashboard Redesign & Per-Feed Text Styling
+
+### Added
+- **UI**: Added font family and text color settings for Title, Description, and Meta info in the per-feed customization options.
+- **Styling**: Support for custom fonts and colors applied to each podcast feed individually.
+
+### Changed
+- **UI**: Completely redesigned the Categories tab with a clean 2-column grid layout.
+- **UI**: Modernized all dashboard tables with better spacing, typography, and hover effects.
+- **UI**: Replaced standard WordPress buttons with custom `podify-button-modern` styles for a more professional look.
+- **UI**: Improved the "Add Import" and "Schedules" tabs with better alignment, organized customization panels, and added hover color settings for the "Load More" button.
+- **UI**: Fixed misalignments in the category customization rows and color picker containers.
+
+## 1.0.37
+### Title
+- Simplified Category Styling
+
+### Changed
+- **UI**: Removed gradient background options from categories to simplify the styling interface.
+- **Styling**: Category backgrounds are now limited to solid colors for a cleaner look.
+
+## 1.0.36
+### Title
+- Per-Category Customization & Modern Layout Fixes
+
+### Added
+- **UI**: Moved color and gradient customization to the Categories tab.
+- **Styling**: Support for per-category card background and button colors.
+- **Styling**: Support for per-category gradients and hover effects.
+
+### Changed
+- **UI**: Reverted per-feed color customization for a cleaner interface.
+- **Frontend**: Updated modern layout to ensure better alignment and proper category styling.
+- **Frontend**: Preserved per-feed custom button text (Read More / Load More).
+
+## 1.0.35
 ### Title
 - Per-Feed Customization & Enhanced Styling Control
 
