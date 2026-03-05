@@ -18,6 +18,9 @@ class Settings {
             'load_more_text_color' => '#ffffff',
             'load_more_bg_hover_color' => '#0948a8',
             'load_more_text_hover_color' => '#ffffff',
+            'title_font' => '',
+            'title_letter_spacing' => '',
+            'title_line_height' => '',
             'custom_css' => '',
         ];
     }

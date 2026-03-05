@@ -168,23 +168,42 @@ class RestInit {
                             'tags' => is_string($r['tags']) ? $r['tags'] : '',
                             'published' => is_string($r['published']) ? $r['published'] : '',
                             'permalink' => $permalink,
-                            'categories' => array_map(function($c){ 
-                                $full = \PodifyPodcast\Core\Database::get_category(intval($c['id']));
-                                return [
-                                    'id'=>intval($c['id']),
-                                    'name'=>is_string($c['name'])?$c['name']:'',
-                                    'slug'=>is_string($c['slug'])?$c['slug']:'',
-                                    'colors' => $full ? [
-                                        'card_bg_color' => $full['card_bg_color'],
-                                        'button_bg_color' => $full['button_bg_color'],
-                                        'button_text_color' => $full['button_text_color'],
-                                        'load_more_bg_color' => $full['load_more_bg_color'],
-                                        'load_more_text_color' => $full['load_more_text_color'],
-                                        'load_more_bg_hover_color' => $full['load_more_bg_hover_color'],
+                            'categories' => (function($episode_id, $feed_id) {
+                                $cats = \PodifyPodcast\Core\Database::get_episode_categories(intval($episode_id));
+                                if (empty($cats) && $feed_id) {
+                                    $feed_cats = \PodifyPodcast\Core\Database::get_categories(intval($feed_id));
+                                    if ($feed_cats) {
+                                        foreach ($feed_cats as $fcat) {
+                                            if ($fcat['card_bg_color'] || $fcat['button_bg_color'] || $fcat['title_color'] || $fcat['desc_color']) {
+                                                $cats[] = $fcat;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                return array_map(function($c) {
+                                    $full = \PodifyPodcast\Core\Database::get_category(intval($c['id']));
+                                    return [
+                                        'id'=>intval($c['id']),
+                                        'name'=>is_string($c['name'])?$c['name']:'',
+                                        'slug'=>is_string($c['slug'])?$c['slug']:'',
+                                        'colors' => $full ? [
+                                            'card_bg_color' => $full['card_bg_color'],
+                                            'title_color' => $full['title_color'],
+                                            'desc_color' => $full['desc_color'],
+                                            'button_bg_color' => $full['button_bg_color'],
+                                            'button_text_color' => $full['button_text_color'],
+                                            'load_more_bg_color' => $full['load_more_bg_color'],
+                                            'load_more_text_color' => $full['load_more_text_color'],
+                                            'load_more_bg_hover_color' => $full['load_more_bg_hover_color'],
                                         'load_more_text_hover_color' => $full['load_more_text_hover_color'],
+                                        'title_font' => $full['title_font'],
+                                        'title_letter_spacing' => $full['title_letter_spacing'],
+                                        'title_line_height' => $full['title_line_height'],
                                     ] : null
-                                ]; 
-                            }, \PodifyPodcast\Core\Database::get_episode_categories(intval($r['id']))),
+                                    ]; 
+                                }, $cats);
+                            })(intval($r['id']), intval($r['feed_id'] ?? 0)),
                         ];
                     }
                 }
@@ -226,7 +245,13 @@ class RestInit {
                     $err = \PodifyPodcast\Core\Database::last_error();
                     return ['ok' => false, 'message' => $err ?: 'Update failed'];
                 }
-                return ['ok' => true];
+                
+                $updated_cat = \PodifyPodcast\Core\Database::get_category($id);
+                return [
+                    'ok' => true,
+                    'slug' => $updated_cat ? $updated_cat['slug'] : '',
+                    'colors' => $color_data
+                ];
             }
         ]);
         register_rest_route('podify/v1','/delete-category',[

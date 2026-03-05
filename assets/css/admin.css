@@ -137,7 +137,7 @@
 .podify-content {
     flex-grow: 1;
     padding: 40px;
-    max-width: 1400px;
+    max-width: none;
     margin: 0;
     box-sizing: border-box;
 }
@@ -224,73 +224,99 @@
     gap: 15px;
 }
 
-/* Modern Button with Animation */
-.podify-button-modern {
+/* Modern Button System */
+.podify-btn-modern {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 10px;
-    background: #3b82f6;
-    color: #fff;
-    border: none;
-    padding: 12px 28px;
+    padding: 12px 24px;
     border-radius: 12px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
     text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 1px solid transparent;
+    line-height: 1;
+    white-space: nowrap;
 }
 
-.podify-button-modern:hover {
+.podify-btn-primary {
     background: #2563eb;
+    color: #fff !important;
+    border-color: #2563eb;
+    box-shadow: 0 4px 10px -1px rgba(37, 99, 235, 0.25);
+}
+
+.podify-btn-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
-    color: #fff;
+    box-shadow: 0 12px 20px -3px rgba(37, 99, 235, 0.35);
+    color: #fff !important;
 }
 
-.podify-button-modern:active {
-    transform: translateY(0);
+.podify-btn-outline {
+    background: #fff;
+    color: #475569 !important;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.podify-button-modern .dashicons {
+.podify-btn-outline:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -3px rgba(0,0,0,0.05);
+}
+
+.podify-btn-danger-outline {
+    background: #fff;
+    color: #ef4444 !important;
+    border-color: #fca5a5;
+}
+
+.podify-btn-danger-outline:hover {
+    background: #fef2f2;
+    border-color: #ef4444;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -3px rgba(239, 68, 68, 0.15);
+}
+
+.podify-btn-modern .dashicons {
     font-size: 18px;
     width: 18px;
     height: 18px;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.podify-button-modern .dashicons {
-    transition: transform 0.3s ease;
-}
-
-.podify-button-modern.is-loading .dashicons {
-    animation: podify-spin 1s linear infinite;
-}
-
-@keyframes podify-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.podify-check-success {
+/* Maintain compatibility with older class name if used elsewhere */
+.podify-button-modern {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 8px 16px;
-    background: #dcfce7;
-    color: #166534;
-    border-radius: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
-    animation: podify-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border: 1px solid transparent;
+    line-height: 1.4;
+    white-space: nowrap;
+    background: #2563eb;
+    color: #fff !important;
+    border-color: #2563eb;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
-
-@keyframes podify-pop {
-    0% { transform: scale(0); opacity: 0; }
-    80% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
+.podify-button-modern:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
 }
 
 /* --- Episodes Page Header --- */
@@ -917,7 +943,7 @@
     padding: 40px;
     border-radius: var(--podify-radius);
     box-shadow: var(--podify-shadow);
-    max-width: 900px;
+    max-width: none;
 }
 
 .podify-changelog h1 {
@@ -972,6 +998,53 @@
 @keyframes podify-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Section Titles */
+.podify-admin-section-title {
+    margin: 0 0 15px 0 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding-bottom: 8px !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* Unified Field Styles */
+.podify-field {
+    margin-bottom: 20px;
+}
+
+.podify-field label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #475569 !important;
+    display: block !important;
+    margin-bottom: 8px !important;
+    text-transform: uppercase !important;
+}
+
+.podify-field input[type="text"],
+.podify-field input[type="url"],
+.podify-field input[type="number"],
+.podify-field input[type="date"],
+.podify-field select {
+    width: 100% !important;
+    border-radius: 8px !important;
+    padding: 10px 12px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #fff !important;
+    font-size: 14px !important;
+    height: 42px !important;
+}
+
+.podify-field input:focus,
+.podify-field select:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    outline: none !important;
 }
 
 /* --- Progress Bar --- */

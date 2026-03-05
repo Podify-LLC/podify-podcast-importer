@@ -72,7 +72,7 @@ class Podify_Github_Updater {
         $v = isset($data['Version']) ? trim((string)$data['Version']) : '';
         return $v ?: (defined('PODIFY_PODCAST_VERSION') ? PODIFY_PODCAST_VERSION : '');
     }
-    private function fetch_latest_release() {
+    public function fetch_latest_release() {
         $token = $this->opt('token', '');
         $args = [
             'headers' => [

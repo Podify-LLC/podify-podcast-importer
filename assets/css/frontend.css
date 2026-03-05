@@ -4,9 +4,11 @@
 }
 .podify-episodes-grid {
   display: grid;
-  gap: 24px;
+  gap: 32px;
   width: 100%;
+  margin-bottom: 40px;
 }
+
 .podify-cols-1 { grid-template-columns: 1fr; }
 .podify-cols-2 { grid-template-columns: repeat(2, 1fr); }
 .podify-cols-3 { grid-template-columns: repeat(3, 1fr); }
@@ -22,126 +24,237 @@
 .podify-episode-card {
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  height: 100%;
 }
+
 .podify-episode-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1);
 }
-.podify-episode-card.podify-row {
-  flex-direction: row;
-  align-items: flex-start;
-}
+
 .podify-episode-media {
   position: relative;
-  aspect-ratio: 16/9;
-  background: #f1f5f9;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
+  background: #f1f5f9;
 }
-.podify-episode-card.podify-row .podify-episode-media {
-  width: 180px;
-  aspect-ratio: 1/1;
-  flex-shrink: 0;
-}
+
 .podify-episode-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
-.podify-episode-placeholder {
-  width: 100%;
-  height: 100%;
+
+.podify-episode-card:hover .podify-episode-media img {
+  /* No scale on hover */
+}
+
+.podify-episode-body {
+  padding: 24px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.podify-episode-top {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.podify-episode-title {
+  font-size: 19px;
+  line-height: 1.4;
+  margin: 0;
+  font-weight: 700;
+}
+
+.podify-episode-title a {
+  color: #1e293b; /* Default dark color */
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 2.8em;
+  transition: color 0.2s ease;
+}
+
+.podify-episode-title a:hover {
+  color: #2563eb;
+}
+
+.podify-episode-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b; /* Default grey color */
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+.podify-episode-desc.podify-clamp-2 {
+  -webkit-line-clamp: 2;
+  max-height: 3.2em; /* 2 lines * 1.6 line-height */
+}
+
+.podify-episode-meta {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.podify-episode-actions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.podify-play-action-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #2563eb;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #cbd5e1;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.podify-episode-placeholder::after {
-  content: "🎙️";
-  font-size: 40px;
-  opacity: 0.3;
+
+.podify-play-action-btn:hover {
+  transform: scale(1.15);
 }
-.podify-episode-card.podify-modern {
-  height: 100%;
+
+.podify-play-action-btn svg {
+  width: 38px;
+  height: 38px;
 }
-.podify-episode-body { width: 62%; padding: 18px; display: flex; flex-direction: column; }
-.podify-episode-card.podify-modern .podify-episode-body { width: 100%; flex-grow: 1; }
-.podify-episode-title { font-size: 19px; line-height: 1.4; margin: 0 0 6px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-height: calc(2 * 1.4em); }
-.podify-episode-link { text-decoration: none; color: inherit; }
-.podify-episode-link:hover { text-decoration: underline; }
-.podify-episode-meta { color: #667085; font-size: 12px; margin-top: 6px; }
-.podify-episode-categories { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
-.podify-category-pill {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+
+.podify-episode-duration {
+  font-size: 13px;
+  font-weight: 700;
   color: #64748b;
-  background: #f1f5f9;
-  padding: 4px 10px;
-  border-radius: 100px;
-  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+.podify-read-more,
+.podify-load-more {
+  position: relative;
+  overflow: hidden;
+}
+
+.podify-read-more:before,
+.podify-read-more:after,
+.podify-load-more:before,
+.podify-load-more:after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  background-image: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.podify-read-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #2563eb;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
   line-height: 1;
 }
-.podify-episode-desc { color: #3c3c3c; font-size: 14px; line-height: 1.5; margin: 6px 0 10px; }
-.podify-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.podify-episode-actions { margin-top: auto; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
-.podify-episode-card.podify-modern .podify-episode-actions { justify-content: flex-start; gap: 16px; margin-top: 12px; }
-.podify-read-more {
-  position: relative;
-  z-index: 10;
-  color: #0b5bd3;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-}
-.podify-read-more:hover { text-decoration: underline; }
 
-/* Play Button */
-.podify-play-action-btn {
-  background: #0b5bd3;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+.podify-read-more:hover {
+  background: #1d4ed8;
+}
+
+.podify-episode-categories {
   display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.podify-category-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.podify-episode-card:hover .podify-category-pill {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.podify-load-more-wrap {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.podify-load-more {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 16px 40px;
+  background: #0b5bd3;
+  color: #fff !important;
+  border: none;
+  border-radius: 8px !important; /* Force proper border radius */
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  position: relative;
-  z-index: 20;
-}
-.podify-play-action-btn:hover { background: #094baf; }
-.podify-play-action-btn:active { transform: scale(0.95); }
-.podify-play-action-btn svg { width: 20px; height: 20px; fill: currentColor; }
-
-/* Playing State */
-.podify-episode-card.podify-playing .podify-play-action-btn {
-  background: #0f172a;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  min-height: 50px; /* Ensure visibility */
 }
 
-/* Pagination */
-.podify-pagination { margin-top: 32px; text-align: center; }
-.podify-load-more {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #0f172a;
-  cursor: pointer;
-  transition: all 0.2s;
+.podify-load-more:hover {
+  background: #0044a0;
 }
-.podify-load-more:hover { border-color: #cbd5e1; background: #f8fafc; }
-.podify-load-more:disabled { opacity: 0.6; cursor: not-allowed; }
+.podify-load-more:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
 
 /* Sticky Player Styles */
 .podify-sticky-player {

@@ -49,6 +49,8 @@ class Database {
             name VARCHAR(128) NOT NULL,
             slug VARCHAR(128) NOT NULL,
             card_bg_color VARCHAR(7) NULL,
+            title_color VARCHAR(7) NULL,
+            desc_color VARCHAR(7) NULL,
             button_bg_color VARCHAR(7) NULL,
             button_text_color VARCHAR(7) NULL,
             load_more_bg_color VARCHAR(7) NULL,
@@ -121,12 +123,17 @@ class Database {
         if ($cats) {
             $cols_to_add = [
                 'card_bg_color' => 'VARCHAR(7) NULL',
+                'title_color' => 'VARCHAR(7) NULL',
+                'desc_color' => 'VARCHAR(7) NULL',
                 'button_bg_color' => 'VARCHAR(7) NULL',
                 'button_text_color' => 'VARCHAR(7) NULL',
                 'load_more_bg_color' => 'VARCHAR(7) NULL',
                 'load_more_text_color' => 'VARCHAR(7) NULL',
                 'load_more_bg_hover_color' => 'VARCHAR(7) NULL',
-                'load_more_text_hover_color' => 'VARCHAR(7) NULL'
+                'load_more_text_hover_color' => 'VARCHAR(7) NULL',
+                'title_font' => 'VARCHAR(100) NULL',
+                'title_letter_spacing' => 'VARCHAR(20) NULL',
+                'title_line_height' => 'VARCHAR(20) NULL'
             ];
             foreach ($cols_to_add as $col => $def) {
                 $exists = $wpdb->get_var("SHOW COLUMNS FROM {$wpdb->prefix}podify_podcast_categories LIKE '$col'");
@@ -321,7 +328,7 @@ class Database {
     public static function get_categories($feed_id = null) {
         global $wpdb;
         self::ensure_installed();
-        $cols = "id, feed_id, name, slug, card_bg_color, button_bg_color, button_text_color, load_more_bg_color, load_more_text_color, load_more_bg_hover_color, load_more_text_hover_color";
+        $cols = "id, feed_id, name, slug, card_bg_color, title_color, desc_color, button_bg_color, button_text_color, load_more_bg_color, load_more_text_color, load_more_bg_hover_color, load_more_text_hover_color, title_font, title_letter_spacing, title_line_height";
         if ($feed_id) {
             return $wpdb->get_results($wpdb->prepare("SELECT $cols FROM {$wpdb->prefix}podify_podcast_categories WHERE feed_id=%d ORDER BY name ASC", intval($feed_id)), ARRAY_A);
         }
@@ -331,7 +338,7 @@ class Database {
         global $wpdb;
         $id = intval($id);
         if (!$id) return false;
-        $cols = "id, feed_id, name, slug, card_bg_color, button_bg_color, button_text_color, load_more_bg_color, load_more_text_color, load_more_bg_hover_color, load_more_text_hover_color";
+        $cols = "id, feed_id, name, slug, card_bg_color, title_color, desc_color, button_bg_color, button_text_color, load_more_bg_color, load_more_text_color, load_more_bg_hover_color, load_more_text_hover_color, title_font, title_letter_spacing, title_line_height";
         return $wpdb->get_row($wpdb->prepare("SELECT $cols FROM {$wpdb->prefix}podify_podcast_categories WHERE id=%d", $id), ARRAY_A);
     }
     public static function add_category($feed_id, $name) {
@@ -422,22 +429,24 @@ class Database {
             $data['feed_id'] = intval($feed_id);
         }
         
-        if (!empty($colors)) {
+        $color_data = (array)$colors;
+        if (!empty($color_data)) {
             $color_fields = [
-                'card_bg_color',
+                'card_bg_color', 'title_color', 'desc_color',
                 'button_bg_color', 'button_text_color', 'load_more_bg_color',
-                'load_more_text_color', 'load_more_bg_hover_color', 'load_more_text_hover_color'
+                'load_more_text_color', 'load_more_bg_hover_color', 'load_more_text_hover_color',
+                'title_font', 'title_letter_spacing', 'title_line_height'
             ];
             foreach ($color_fields as $field) {
-                if (isset($colors[$field])) {
-                    $data[$field] = $colors[$field];
+                if (isset($color_data[$field])) {
+                    $data[$field] = $color_data[$field];
                 }
             }
         }
 
         $result = $wpdb->update("{$wpdb->prefix}podify_podcast_categories", $data, ['id' => $id]);
         if ($result === false) {
-            self::$last_error = $wpdb->last_error;
+            self::$last_error = $wpdb->last_error ?: 'DB Update returned false';
             return false;
         }
         return true;
